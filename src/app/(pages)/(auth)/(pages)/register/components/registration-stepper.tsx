@@ -7,15 +7,15 @@ import { Check } from "lucide-react";
 const steps = [
   {
     title: "Basic Info",
-    path: "/auth/register",
+    path: "/register",
   },
   {
     title: "Academic Profile",
-    path: "/auth/register/academic-profile",
+    path: "/register/academic-profile",
   },
   {
     title: "Preferences",
-    path: "/auth/register/preference-setup",
+    path: "/register/preference-setup",
   },
 ];
 
