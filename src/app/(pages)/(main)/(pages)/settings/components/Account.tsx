@@ -22,11 +22,7 @@ export default function Account() {
       <div className="mb-8">
         <h3 className="text-lg font-medium mb-4">Profile Picture</h3>
         <div className="flex items-center gap-4">
-          <img
-            src="/path/to/avatar.jpg"
-            alt="Profile"
-            className="w-24 h-24 rounded-full object-cover"
-          />
+          <div className="w-24 h-24 rounded-full bg-gray-200" />
           <Button variant="outline">Change Photo</Button>
         </div>
       </div>

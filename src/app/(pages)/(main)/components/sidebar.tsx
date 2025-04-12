@@ -1,12 +1,42 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Home, Book, MessageCircle, Settings } from "lucide-react";
-import Link from "next/link";
+import useLayoutStore from "@/stores/layout-store";
 import { usePathname } from "next/navigation";
+import { Home, MessageCircle, Settings } from "lucide-react";
+import { Book } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import SyllabusNavigation from "./syllabus-navigation";
 
 export default function Sidebar() {
+  const { sidebarContent, setSidebarContent } = useLayoutStore();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname.includes("/courses") && pathname.includes("/learn")) {
+      setSidebarContent("syllabus");
+    } else {
+      setSidebarContent("default");
+    }
+  }, [pathname, setSidebarContent]);
+
+  return sidebarContent === "default" ? (
+    <AnimatePresence>
+      <DefaultSidebar />
+    </AnimatePresence>
+  ) : (
+    <AnimatePresence>
+      <SyllabusSidebar />
+    </AnimatePresence>
+  );
+  // <div className="w-fit h-full border-r bg-white">
+  // </div>
+}
+
+const DefaultSidebar = () => {
   const pathname = usePathname();
 
   const menuItems = [
@@ -17,8 +47,14 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-64 h-full pt-[62px] text-primary-foreground flex flex-col border-r fixed bottom-0 left-0 z-40 bg-white">
-      <ul className="flex-1 px-3 space-y-2 mt-4">
+    <motion.div
+      initial={{ width: "0px" }}
+      animate={{ width: "16rem" }}
+      exit={{ width: "0px" }}
+      transition={{ duration: 0.3 }}
+      className="h-screen overflow-hidden pt-[62px] text-primary-foreground flex flex-col border-r sticky top-0 left-0 z-40 bg-white flex-[0_0_auto]"
+    >
+      <ul className="px-3 space-y-2 mt-4 w-[16rem]">
         {menuItems.map((item) => (
           <li key={item.name}>
             <Button
@@ -37,6 +73,20 @@ export default function Sidebar() {
           </li>
         ))}
       </ul>
-    </div>
+    </motion.div>
   );
-}
+};
+
+const SyllabusSidebar = () => {
+  return (
+    <motion.div
+      initial={{ width: "0px" }}
+      animate={{ width: "16rem" }}
+      exit={{ width: "0px" }}
+      transition={{ duration: 0.3 }}
+      className="h-screen overflow-hidden pt-[62px] text-primary-foreground flex flex-col border-r sticky top-0 left-0 z-40 bg-white flex-[0_0_auto]"
+    >
+      <SyllabusNavigation />
+    </motion.div>
+  );
+};

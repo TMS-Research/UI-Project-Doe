@@ -1,9 +1,8 @@
-import Image from "next/image";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-
+import Link from "next/link";
 interface CourseCardProps {
   title: string;
   code: string;
@@ -15,16 +14,7 @@ interface CourseCardProps {
   className?: string;
 }
 
-export function CourseCard({
-  title,
-  code,
-  instructor,
-  progress,
-  lastAccessed,
-  subject,
-  imageUrl,
-  className,
-}: CourseCardProps) {
+export function CourseCard({ title, code, instructor, progress, lastAccessed, subject, className }: CourseCardProps) {
   return (
     <Card className={cn("overflow-hidden", className)}>
       <div className="flex gap-4 p-4">
@@ -53,8 +43,9 @@ export function CourseCard({
               <Button
                 variant="default"
                 size="sm"
+                asChild
               >
-                Continue
+                <Link href={`/courses/${code}/corridor`}>Continue</Link>
               </Button>
             </div>
           </div>
