@@ -1,17 +1,18 @@
 "use client";
 
+import axiosInstance from "@/app/api/axios";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { RegisterFormData, registerSchema } from "../lib/validation";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { RegisterFormData, RegisterReqBody, registerSchema } from "../lib/validation";
+import { Loader2 } from "lucide-react";
 
 export default function RegisterForm() {
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const form = useForm<RegisterFormData>({
@@ -24,17 +25,28 @@ export default function RegisterForm() {
     },
   });
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (data: RegisterReqBody) => {
+      const response = await axiosInstance.post("/auth/register", data);
+      return response.data;
+    },
+    mutationKey: ["register"],
+    onSuccess: (data) => {
+      console.log(data);
+      router.push("/register/academic-profile?from=basic-info");
+    },
+    onSettled: () => {
+      form.reset();
+    },
+  });
+
   const onSubmit = async (data: RegisterFormData) => {
-    try {
-      setIsLoading(true);
-      // TODO: Implement registration logic here
-      console.log("Registration attempt with:", data);
-    } catch (error) {
-      console.error("Registration error:", error);
-    } finally {
-      setIsLoading(false);
-      router.push("/auth/register/academic-profile");
-    }
+    const reqBody: RegisterReqBody = {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+    };
+    mutate(reqBody);
   };
 
   return (
@@ -121,20 +133,20 @@ export default function RegisterForm() {
           <Button
             type="submit"
             className="w-full !mt-6"
-            disabled={isLoading}
+            disabled={isPending}
           >
-            {isLoading ? "Creating account..." : "Create account"}
+            {isPending ? "Creating account..." : "Create account"}
+            {isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
           </Button>
 
           <div className="text-center text-sm">
             <span className="text-gray-600">Already have an account?</span>{" "}
-            <Link
-              href="/auth/login"
-              className="font-medium text-blue-700 hover:text-blue-500"
-              aria-label="Sign in to your account"
+            <Button
+              variant="link"
+              asChild
             >
-              Sign in
-            </Link>
+              <Link href="/login">Sign in</Link>
+            </Button>
           </div>
         </form>
       </Form>

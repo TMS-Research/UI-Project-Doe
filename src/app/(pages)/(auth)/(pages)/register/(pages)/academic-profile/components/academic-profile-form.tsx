@@ -5,32 +5,25 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { AcademicProfileFormData, academicProfileSchema } from "../lib/validation";
+import { toast } from "sonner";
+const careerOptions = ["Software Development", "Data Science", "Business Analytics", "Research", "Teaching", "Other"];
 
-const careerOptions = [
-  "Software Development",
-  "Data Science",
-  "Business Analytics",
-  "Research",
-  "Teaching",
-  "Other"
-];
-
-const yearOptions = [
-  "First Year",
-  "Second Year",
-  "Third Year",
-  "Fourth Year",
-  "Graduate Student",
-  "Other"
-];
+const yearOptions = ["First Year", "Second Year", "Third Year", "Fourth Year", "Graduate Student", "Other"];
 
 export default function AcademicProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+  useEffect(() => {
+    if (!from || from !== "basic-info") {
+      router.push("/register");
+    }
+  }, [from, router]);
 
   const form = useForm<AcademicProfileFormData>({
     resolver: zodResolver(academicProfileSchema),
@@ -56,19 +49,23 @@ export default function AcademicProfileForm() {
   };
 
   const handleSkip = () => {
-    router.push("/auth/register/preference-setup");
+    toast("Skipping Academic Profile", {
+      description: "You can always update your academic profile later.",
+    });
+    // router.push("/register/preference-setup");
   };
 
   return (
     <div className="w-full max-w-md space-y-8 m-auto">
       <div>
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">Academic Profile 📚</h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Tell us about your academic background
-        </p>
+        <p className="mt-2 text-center text-sm text-gray-600">Tell us about your academic background</p>
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
           <FormField
             control={form.control}
             name="school"
@@ -109,7 +106,10 @@ export default function AcademicProfileForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Current Year/Semester</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select your current year" />
@@ -117,7 +117,10 @@ export default function AcademicProfileForm() {
                   </FormControl>
                   <SelectContent>
                     {yearOptions.map((year) => (
-                      <SelectItem key={year} value={year}>
+                      <SelectItem
+                        key={year}
+                        value={year}
+                      >
                         {year}
                       </SelectItem>
                     ))}
@@ -134,7 +137,10 @@ export default function AcademicProfileForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Career Goals (Optional)</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select your career goals" />
@@ -142,7 +148,10 @@ export default function AcademicProfileForm() {
                   </FormControl>
                   <SelectContent>
                     {careerOptions.map((career) => (
-                      <SelectItem key={career} value={career}>
+                      <SelectItem
+                        key={career}
+                        value={career}
+                      >
                         {career}
                       </SelectItem>
                     ))}
@@ -174,4 +183,4 @@ export default function AcademicProfileForm() {
       </Form>
     </div>
   );
-} 
+}
