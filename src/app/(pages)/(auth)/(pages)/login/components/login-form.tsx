@@ -1,17 +1,20 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { zodResolver } from "@hookform/resolvers/zod"
-import Link from "next/link"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { LoginFormData, loginSchema } from "../lib/validation"
+import axiosInstance from "@/app/api/axios";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/stores/auth-store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { LoginFormData, LoginReqBody, loginSchema } from "../lib/validation";
 
 export default function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuthStore();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -20,19 +23,31 @@ export default function LoginForm() {
       password: "",
       rememberMe: false,
     },
-  })
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (data: LoginReqBody) => {
+      const formData = new FormData();
+      formData.append("username", data.username);
+      formData.append("password", data.password);
+
+      const response = await axiosInstance.postForm("/auth/login", formData);
+      return response.data;
+    },
+    mutationKey: ["login"],
+    onSuccess: (data) => {
+      login(data.access_token, data.rememberMe);
+      form.reset();
+    },
+  });
 
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      setIsLoading(true)
-      // TODO: Implement login logic here
-      console.log("Login attempt with:", data)
-    } catch (error) {
-      console.error("Login error:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    const reqBody: LoginReqBody = {
+      username: data.email,
+      password: data.password,
+    };
+    mutate(reqBody);
+  };
 
   return (
     <div className="w-full max-w-md space-y-8 m-auto">
@@ -98,12 +113,12 @@ export default function LoginForm() {
             />
             <div className="flex items-center justify-between">
               <div className="text-sm">
-                <Link
-                  href="/forgot-password"
-                  className="font-medium text-blue-700 hover:text-blue-500"
+                <Button
+                  variant="link"
+                  asChild
                 >
-                  Forgot your password?
-                </Link>
+                  <Link href="/forgot-password">Forgot your password?</Link>
+                </Button>
               </div>
             </div>
           </div>
@@ -111,23 +126,23 @@ export default function LoginForm() {
           <Button
             type="submit"
             className="w-full !mt-6"
-            disabled={isLoading}
+            disabled={isPending}
           >
-            {isLoading ? "Signing in..." : "Sign in"}
+            {isPending ? "Signing in..." : "Sign in"}
+            {isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
           </Button>
 
           <div className="text-center text-sm">
-            <span className="text-gray-600">Don&apos;t have an account?</span>
-            <Link
-              href="/auth/register"
-              className="font-medium text-blue-700 hover:text-blue-500"
-              aria-label="Register for an account"
+            <span className="text-gray-600">Don&apos;t have an account?</span>{" "}
+            <Button
+              variant="link"
+              asChild
             >
-              Register
-            </Link>
+              <Link href="/register">Register</Link>
+            </Button>
           </div>
         </form>
       </Form>
     </div>
-  )
+  );
 }
