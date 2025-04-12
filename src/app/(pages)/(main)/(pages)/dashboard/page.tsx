@@ -31,6 +31,15 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("all subjects");
 
+  // Filter courses based on search query and selected subject
+  const filteredCourses = continueLearningCourses.filter((course) => {
+    const matchesSearch =
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.code.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSubject = selectedSubject === "all subjects" || course.subject === selectedSubject;
+    return matchesSearch && matchesSubject;
+  });
+
   return (
     <div className="space-y-8 p-6">
       <div>
@@ -46,7 +55,7 @@ export default function DashboardPage() {
       <div>
         <h2 className="text-xl font-semibold mb-4">Continue Learning</h2>
         <div className="grid gap-6">
-          {continueLearningCourses.map((course) => (
+          {filteredCourses.map((course) => (
             <CourseCard
               key={course.code}
               {...course}
@@ -66,7 +75,7 @@ export default function DashboardPage() {
           </Button>
         </div>
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {continueLearningCourses.map((course) => (
+          {filteredCourses.map((course) => (
             <CourseCard
               key={course.code}
               {...course}
