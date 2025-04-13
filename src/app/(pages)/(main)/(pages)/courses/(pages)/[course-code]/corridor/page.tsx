@@ -1,119 +1,68 @@
 "use client";
 
+import axiosInstance from "@/app/api/axios";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { queryClient } from "@/lib/react-query";
+import { useCoursesStore } from "@/stores/courses-store";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Clock, Facebook, Linkedin, MessageCircle, Share2, Twitter, Users } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 export default function CorridorPage() {
-  const courseInfo = {
-    title: "Introduction to Computer Science",
-    code: "CS101",
-    instructor: "Dr. Alan Turing",
-    progress: 65,
-    description:
-      "This course provides a broad introduction to computer science and teaches the basics of programming using Python. Students will learn fundamental concepts such as algorithms, data structures, and computational problem solving. No prior programming experience is required.",
-    department: "Computer Science",
-    credits: 3,
-    term: "Fall 2023",
-    level: "Undergraduate",
-    learningObjectives: [
-      "Understand fundamental concepts in computer science",
-      "Learn basic programming principles and syntax in Python",
-      "Develop algorithmic thinking and problem-solving skills",
-      "Build simple applications and understand software development concepts",
-    ],
-    prerequisites: ["None"],
-    syllabus: [
-      {
-        title: "Introduction and Computational Thinking",
-        topics: [
-          {
-            title: "Course Overview and Introduction to Computer Science",
-            duration: "1 hour",
-          },
-          {
-            title: "Computational Thinking and Problem Solving",
-            duration: "1 hour",
-          },
-          {
-            title: "Binary and Data Representation",
-            duration: "1 hour",
-          },
-        ],
-      },
-      {
-        title: "Python Fundamentals",
-        topics: [
-          {
-            title: "Introduction to Python and Basic Syntax",
-            duration: "1 hour",
-          },
-          {
-            title: "Variables, Data Types, and Operators",
-            duration: "1 hour",
-          },
-          {
-            title: "Control Flow: Conditionals and Loops",
-            duration: "1 hour",
-          },
-        ],
-      },
-      {
-        title: "Advanced Python",
-        topics: [
-          {
-            title: "Functions and Modules",
-            duration: "1 hour",
-          },
-          {
-            title: "Object-Oriented Programming",
-            duration: "1 hour",
-          },
-          {
-            title: "Error Handling and Debugging",
-            duration: "1 hour",
-          },
-        ],
-      },
-      {
-        title: "Algorithms and Applications",
-        topics: [
-          {
-            title: "Basic Algorithms and Problem Solving",
-            duration: "1 hour",
-          },
-          {
-            title: "Data Structures",
-            duration: "1 hour",
-          },
-          {
-            title: "Final Project and Review",
-            duration: "1 hour",
-          },
-        ],
-      },
-    ],
-  };
+  const { "course-code": courseCode } = useParams();
+
+  const { data: course } = useQuery({
+    queryKey: ["course", courseCode],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/courses/${courseCode}`);
+      return response.data;
+    },
+    enabled: !!courseCode,
+  });
+
+  const { setActiveCourse } = useCoursesStore();
+
+  useEffect(() => {
+    setActiveCourse(courseCode as string);
+  }, [courseCode, setActiveCourse]);
 
   const corridorSections = [
     {
       title: "Discussion Forum",
       description: "Engage with your peers and instructors",
       icon: <MessageCircle className="w-6 h-6" />,
-      href: `/courses/${courseInfo.code}/forum`,
+      href: `/courses/${courseCode}/forum`,
       stats: "156 discussions",
     },
     {
       title: "Study Groups",
       description: "Join or create study groups",
       icon: <Users className="w-6 h-6" />,
-      href: `/courses/${courseInfo.code}/groups`,
+      href: `/courses/${courseCode}/groups`,
       stats: "8 active groups",
     },
   ];
+
+  const { mutate: enrollCourse } = useMutation({
+    mutationFn: async () => {
+      const response = await axiosInstance.post(`/courses/${courseCode}/enroll`);
+      return response.data;
+    },
+    mutationKey: ["enrollCourse", courseCode],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["course", courseCode] });
+      toast.success("Course enrolled successfully");
+    },
+    onError: () => {
+      toast.error("Failed to enroll in course");
+    },
+  });
 
   return (
     <div className="space-y-8">
@@ -122,17 +71,17 @@ export default function CorridorPage() {
         <div className="flex flex-col gap-4">
           <div>
             <div className="inline-flex px-2 py-1 rounded-full text-sm bg-primary/10 text-primary mb-2">
-              {courseInfo.code}
+              {course?.code}
             </div>
-            <h1 className="text-2xl font-bold">{courseInfo.title}</h1>
-            <p className="text-muted-foreground">Instructor: {courseInfo.instructor}</p>
+            <h1 className="text-2xl font-bold">{course?.title}</h1>
+            <p className="text-muted-foreground">Instructor: {course?.instructor_info?.name}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-sm text-muted-foreground">Course Progress</div>
             <div className="flex-1">
-              <Progress value={courseInfo.progress} />
+              <Progress value={course?.progress} />
             </div>
-            <div className="text-sm font-medium">{courseInfo.progress}%</div>
+            <div className="text-sm font-medium">{course?.progress}%</div>
           </div>
         </div>
       </div>
@@ -146,17 +95,17 @@ export default function CorridorPage() {
               <CardTitle>Course Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">{courseInfo.description}</p>
+              <p className="text-gray-600">{course?.description}</p>
             </CardContent>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Learning Objectives</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="list-disc list-inside space-y-2 text-gray-600">
-                {courseInfo.learningObjectives.map((objective, index) => (
+                {course?.learning_objectives?.map((objective: any, index: number) => (
                   <li key={index}>{objective}</li>
                 ))}
               </ul>
@@ -169,12 +118,12 @@ export default function CorridorPage() {
             </CardHeader>
             <CardContent>
               <ul className="list-disc list-inside text-gray-600">
-                {courseInfo.prerequisites.map((prerequisite, index) => (
+                {course?.prerequisites?.map((prerequisite: any, index: number) => (
                   <li key={index}>{prerequisite}</li>
                 ))}
               </ul>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card>
             <CardHeader>
@@ -186,7 +135,7 @@ export default function CorridorPage() {
                 collapsible
                 className="w-full"
               >
-                {courseInfo.syllabus.map((section, index) => (
+                {course?.sections?.map((section: any, index: number) => (
                   <AccordionItem
                     key={index}
                     value={`section-${index}`}
@@ -194,18 +143,18 @@ export default function CorridorPage() {
                     <AccordionTrigger>{section.title}</AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-4">
-                        {section.topics.map((topic, topicIndex) => (
+                        {section.content?.topics?.map((topic: any, topicIndex: number) => (
                           <div
                             key={topicIndex}
                             className="flex items-center justify-between text-sm"
                           >
                             <div className="flex items-center gap-2">
                               <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-                              <span>{topic.title}</span>
+                              <span>{topic}</span>
                             </div>
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <Clock className="w-4 h-4" />
-                              <span>{topic.duration}</span>
+                              <span>{1}</span>
                             </div>
                           </div>
                         ))}
@@ -250,12 +199,21 @@ export default function CorridorPage() {
               <CardDescription>Enroll now to access all course materials</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button
-                asChild
-                className="w-full"
-              >
-                <Link href={`/courses/${courseInfo.code}/learn/1.1`}>Continue to Course</Link>
-              </Button>
+              {course?.is_enrolled ? (
+                <Button
+                  asChild
+                  className="w-full"
+                >
+                  <Link href={`/courses/${courseCode}/learn/${course?.sections[0].id}`}>Continue to Course</Link>
+                </Button>
+              ) : (
+                <Button
+                  className="w-full"
+                  onClick={() => enrollCourse()}
+                >
+                  Enroll Now
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -265,24 +223,20 @@ export default function CorridorPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Department:</span>
-                <span className="font-medium">{courseInfo.department}</span>
+                <span className="text-muted-foreground">Category:</span>
+                <span className="font-medium">{course?.category}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Course Code:</span>
-                <span className="font-medium">{courseInfo.code}</span>
+                <span className="font-medium">{course?.code}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Credits:</span>
-                <span className="font-medium">{courseInfo.credits}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Term:</span>
-                <span className="font-medium">{courseInfo.term}</span>
+                <span className="font-medium">{course?.sections?.length}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Level:</span>
-                <span className="font-medium">{courseInfo.level}</span>
+                <span className="font-medium">{course?.difficulty_level}</span>
               </div>
             </CardContent>
           </Card>

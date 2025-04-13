@@ -12,9 +12,19 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { LoginFormData, LoginReqBody, loginSchema } from "../lib/validation";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function LoginForm() {
-  const { login } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const { login, user } = useAuthStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    }
+  }, [user, router]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -25,8 +35,9 @@ export default function LoginForm() {
     },
   });
 
-  const { mutate, isPending } = useMutation({
+  const { mutate } = useMutation({
     mutationFn: async (data: LoginReqBody) => {
+      setIsLoading(true);
       const formData = new FormData();
       formData.append("username", data.username);
       formData.append("password", data.password);
@@ -35,9 +46,16 @@ export default function LoginForm() {
       return response.data;
     },
     mutationKey: ["login"],
-    onSuccess: (data) => {
-      login(data.access_token, data.rememberMe);
+    onSuccess: async (data) => {
+      const success = await login(data.access_token, data.rememberMe);
+
+      if (success) {
+        router.push("/dashboard");
+      }
       form.reset();
+    },
+    onSettled: () => {
+      setIsLoading(false);
     },
   });
 
@@ -126,10 +144,10 @@ export default function LoginForm() {
           <Button
             type="submit"
             className="w-full !mt-6"
-            disabled={isPending}
+            disabled={isLoading}
           >
-            {isPending ? "Signing in..." : "Sign in"}
-            {isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+            {isLoading ? "Signing in..." : "Sign in"}
+            {isLoading && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
           </Button>
 
           <div className="text-center text-sm">
