@@ -10,7 +10,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { AcademicProfileFormData, academicProfileSchema } from "../lib/validation";
 import { toast } from "sonner";
-const careerOptions = ["Software Development", "Data Science", "Business Analytics", "Research", "Teaching", "Other"];
+import { useQuery } from "@tanstack/react-query";
+import axiosInstance from "@/app/api/axios";
 
 const yearOptions = ["First Year", "Second Year", "Third Year", "Fourth Year", "Graduate Student", "Other"];
 
@@ -24,6 +25,14 @@ export default function AcademicProfileForm() {
       router.push("/register");
     }
   }, [from, router]);
+
+  const { data: aspirations } = useQuery({
+    queryKey: ["aspirations"],
+    queryFn: async () => {
+      const response = await axiosInstance.get("/users/aspirations");
+      return response.data;
+    },
+  });
 
   const form = useForm<AcademicProfileFormData>({
     resolver: zodResolver(academicProfileSchema),
@@ -133,7 +142,7 @@ export default function AcademicProfileForm() {
 
           <FormField
             control={form.control}
-            name="careerGoals"
+            name="goals"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Career Goals (Optional)</FormLabel>
@@ -147,12 +156,12 @@ export default function AcademicProfileForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {careerOptions.map((career) => (
+                    {aspirations?.map((aspiration: any) => (
                       <SelectItem
-                        key={career}
-                        value={career}
+                        key={aspiration.id}
+                        value={aspiration.title}
                       >
-                        {career}
+                        {aspiration.title}
                       </SelectItem>
                     ))}
                   </SelectContent>

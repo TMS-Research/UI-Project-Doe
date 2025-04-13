@@ -11,9 +11,14 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { RegisterFormData, RegisterReqBody, registerSchema } from "../lib/validation";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { LoginReqBody } from "../../login/lib/validation";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function RegisterForm() {
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuthStore();
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -25,18 +30,39 @@ export default function RegisterForm() {
     },
   });
 
-  const { mutate, isPending } = useMutation({
+  const { mutate: mutateRegister } = useMutation({
     mutationFn: async (data: RegisterReqBody) => {
-      const response = await axiosInstance.post("/auth/register", data);
-      return response.data;
+      setIsLoading(true);
+      await axiosInstance.post("/auth/register", data);
+      mutateLogin({ username: data.email, password: data.password });
     },
     mutationKey: ["register"],
-    onSuccess: (data) => {
-      console.log(data);
-      router.push("/register/academic-profile?from=basic-info");
+    onError: () => {
+      setIsLoading(false);
+    },
+  });
+
+  const { mutate: mutateLogin } = useMutation({
+    mutationFn: async (data: LoginReqBody) => {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append("username", data.username);
+      formData.append("password", data.password);
+
+      const response = await axiosInstance.postForm("/auth/login", formData);
+      return response.data;
+    },
+    mutationKey: ["login"],
+    onSuccess: async (data) => {
+      const success = await login(data.access_token, data.rememberMe);
+
+      if (success) {
+        router.push("/register/academic-profile?from=basic-info");
+      }
+      form.reset();
     },
     onSettled: () => {
-      form.reset();
+      setIsLoading(false);
     },
   });
 
@@ -46,7 +72,7 @@ export default function RegisterForm() {
       email: data.email,
       password: data.password,
     };
-    mutate(reqBody);
+    mutateRegister(reqBody);
   };
 
   return (
@@ -133,10 +159,10 @@ export default function RegisterForm() {
           <Button
             type="submit"
             className="w-full !mt-6"
-            disabled={isPending}
+            disabled={isLoading}
           >
-            {isPending ? "Creating account..." : "Create account"}
-            {isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+            {isLoading ? "Creating account..." : "Create account"}
+            {isLoading && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
           </Button>
 
           <div className="text-center text-sm">

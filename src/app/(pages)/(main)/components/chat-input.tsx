@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
 import useChatStore from "@/stores/chat-store";
-
+import { useMutation } from "@tanstack/react-query";
+import axiosInstance from "@/app/api/axios";
+import { useSectionsStore } from "@/stores/sections-store";
+import { useCoursesStore } from "@/stores/courses-store";
 export default function ChatInput() {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { addMessage, setLoading, isLoading } = useChatStore();
 
-  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -21,28 +23,42 @@ export default function ChatInput() {
     e.preventDefault();
 
     if (!input.trim() || isLoading) return;
+    sendMessage(input.trim());
+  };
 
-    // Add user message
-    addMessage({
-      role: "user",
-      content: input.trim(),
-    });
+  const { activeCourse } = useCoursesStore();
+  const { activeSection } = useSectionsStore();
 
-    setInput("");
+  const { mutate: sendMessage } = useMutation({
+    mutationFn: async (message: string) => {
+      setLoading(true);
+      addMessage({
+        role: "user",
+        content: input.trim(),
+      });
 
-    // Simulate AI response
-    setLoading(true);
-
-    // Simulate API call delay
-    setTimeout(() => {
+      const response = await axiosInstance.post("/chat", {
+        message,
+        course_id: activeCourse,
+        section_id: activeSection,
+        context_information: {},
+        persona: "coach",
+        role_behavior: "You should provide actionable, concrete scheduling tips that can be implemented immediately.",
+        enable_vector_search: true,
+      });
+      return response.data;
+    },
+    mutationKey: ["sendMessage"],
+    onSuccess: (data) => {
+      setInput("");
+      console.log(data);
       addMessage({
         role: "assistant",
-        content:
-          "This is a simulated response from the AI assistant. In a real implementation, this would be replaced with an actual API call to an AI service.",
+        content: data.message_content,
       });
       setLoading(false);
-    }, 1000);
-  };
+    },
+  });
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {

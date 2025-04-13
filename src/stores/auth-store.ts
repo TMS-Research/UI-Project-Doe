@@ -13,7 +13,7 @@ type User = {
 type AuthState = {
   user: User | null;
   accessToken: string | null;
-  login: (accessToken: string, remember: boolean) => void;
+  login: (accessToken: string, remember: boolean) => Promise<boolean>;
   saveUser: (user: User) => void;
   logout: () => void;
   initializeAuth: () => void;
@@ -26,33 +26,34 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (accessToken, remember) => {
     Cookies.set("accessToken", accessToken, {
       expires: remember ? 1 : undefined, // 30 hari kalau "remember"
-      secure: true,
-      sameSite: "Strict",
     });
 
     set({ accessToken });
+    console.log("Login - Access token:", Cookies.get("accessToken"));
+    console.log("Login - User:", accessToken);
 
-    queryClient
-      .fetchQuery({
+    try {
+      const user = await queryClient.fetchQuery({
         queryKey: ["user"],
         queryFn: async () => {
-          console.log("Login - Making /users/me request with token:", Cookies.get("accessToken"));
-          const response = await axiosInstance.get("/courses");
+          console.log("Login - Making /users/me request with token:", accessToken);
+          const response = await axiosInstance.get("/users/me");
           console.log("Login - Response:", response);
           return response.data;
         },
-      })
-      .then((user) => {
-        set({ user });
-        // router.push("/dashboard");
       });
+
+      set({ user });
+      return true;
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return false;
+    }
   },
 
   saveUser: (user: User) => {
     Cookies.set("user", JSON.stringify(user), {
       expires: 1,
-      secure: true,
-      sameSite: "Strict",
     });
   },
 

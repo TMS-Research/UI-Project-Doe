@@ -1,13 +1,13 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import useChatStore from "@/stores/chat-store";
-import ChatMessage from "./chat-message";
-import ChatInput from "./chat-input";
 import useLayoutStore from "@/stores/layout-store";
+import { Trash2 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import ChatInput from "./chat-input";
+import ChatMessage from "./chat-message";
 
 export default function AIAssistant() {
   const { messages, clearMessages, isLoading } = useChatStore();

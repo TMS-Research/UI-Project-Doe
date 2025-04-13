@@ -5,6 +5,11 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Book, CheckCircle, Clock } from "lucide-react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import axiosInstance from "@/app/api/axios";
+import { useEffect } from "react";
+import { useSectionsStore } from "@/stores/sections-store";
+import { useCoursesStore } from "@/stores/courses-store";
 
 // Define types for content items
 interface TextContent {
@@ -163,24 +168,42 @@ const syllabusContent: Record<string, SyllabusItem> = {
 export default function LearnPage() {
   const params = useParams();
   const syllabusCode = params["syllabus-code"] as string;
+  const courseCode = params["course-code"] as string;
+
+  const { setActiveSection } = useSectionsStore();
+  const { setActiveCourse } = useCoursesStore();
+
+  const { data: content } = useQuery({
+    queryKey: ["content", courseCode],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/courses/${courseCode}/sections/${syllabusCode}`);
+      return response.data;
+    },
+    enabled: !!courseCode && !!syllabusCode,
+  });
+
+  useEffect(() => {
+    setActiveSection(syllabusCode);
+    setActiveCourse(courseCode as string);
+  }, [syllabusCode, setActiveSection, setActiveCourse, courseCode]);
 
   // Get the content for the current syllabus code
-  const content = syllabusContent[syllabusCode as keyof typeof syllabusContent] || {
-    title: "Content Not Found",
-    subtitle: "This section is under development",
-    description: "The content you're looking for is not available yet.",
-    duration: "0 minutes",
-    progress: 0,
-    completed: false,
-    content: [
-      {
-        type: "text",
-        content: "This content is currently being developed. Please check back later.",
-      },
-    ],
-    nextLesson: null,
-    prevLesson: null,
-  };
+  // const content = syllabusContent[syllabusCode as keyof typeof syllabusContent] || {
+  //   title: "Content Not Found",
+  //   subtitle: "This section is under development",
+  //   description: "The content you're looking for is not available yet.",
+  //   duration: "0 minutes",
+  //   progress: 0,
+  //   completed: false,
+  //   content: [
+  //     {
+  //       type: "text",
+  //       content: "This content is currently being developed. Please check back later.",
+  //     },
+  //   ],
+  //   nextLesson: null,
+  //   prevLesson: null,
+  // };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -191,19 +214,19 @@ export default function LearnPage() {
             <div className="inline-flex px-2 py-1 rounded-full text-sm bg-primary/10 text-primary mb-2">
               {syllabusCode}
             </div>
-            <h1 className="text-2xl font-bold">{content.title}</h1>
-            <p className="text-muted-foreground">{content.subtitle}</p>
+            <h1 className="text-2xl font-bold">{content?.title}</h1>
+            <p className="text-muted-foreground">{content?.subtitle}</p>
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span>{content.duration}</span>
+              <span>{content?.duration}</span>
             </div>
             <div className="flex items-center gap-1">
               <Book className="h-4 w-4" />
-              <span>Chapter {syllabusCode.split(".")[0]}</span>
+              <span>Chapter {content?.chapter}</span>
             </div>
-            {content.completed && (
+            {content?.completed && (
               <div className="flex items-center gap-1 text-green-600">
                 <CheckCircle className="h-4 w-4" />
                 <span>Completed</span>
@@ -213,32 +236,40 @@ export default function LearnPage() {
           <div className="flex items-center gap-2">
             <div className="text-sm text-muted-foreground">Progress</div>
             <div className="flex-1">
-              <Progress value={content.progress} />
+              <Progress value={content?.progress} />
             </div>
-            <div className="text-sm font-medium">{content.progress}%</div>
+            <div className="text-sm font-medium">{content?.progress}%</div>
           </div>
         </div>
       </div>
 
       {/* Course Content */}
-      <div className="bg-white rounded-xl p-6 shadow space-y-6">
-        <h2 className="text-xl font-semibold">Content</h2>
-        <p className="text-muted-foreground">{content.description}</p>
+      <div className="bg-white rounded-xl p-6 shadow space-y-2">
+        <h2 className="text-xl font-semibold">Topics</h2>
+        <p className="text-muted-foreground">{content?.description}</p>
 
         <div className="space-y-4">
-          {content.content.map((item, index) => (
+          {content?.content.topics.map((item, index) => (
             <div
               key={index}
-              className="prose max-w-none"
+              className="inline-flex px-2 py-1 rounded-full text-sm bg-primary/10 text-primary mr-2 mb-2"
             >
-              {item.type === "text" && <p>{item.content}</p>}
-              {item.type === "list" && (
-                <ul className="list-disc pl-6 space-y-1">
-                  {item.items.map((listItem, listIndex) => (
-                    <li key={listIndex}>{listItem}</li>
-                  ))}
-                </ul>
-              )}
+              {item}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl p-6 shadow space-y-2">
+        <h2 className="text-xl font-semibold">Resources</h2>
+
+        <div className="space-y-4">
+          {content?.content.resources.map((item, index) => (
+            <div
+              key={index}
+              className="inline-flex px-2 py-1 rounded-full text-sm bg-primary/10 text-primary mr-2 mb-2"
+            >
+              {item}
             </div>
           ))}
         </div>
@@ -246,13 +277,13 @@ export default function LearnPage() {
 
       {/* Navigation */}
       <div className="flex justify-between">
-        {content.prevLesson ? (
+        {content?.prevLesson ? (
           <Button
             asChild
             variant="outline"
           >
             <Link
-              href={`/courses/CS101/learn/${content.prevLesson}`}
+              href={`/courses/${courseCode}/learn/${content?.prevLesson}`}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -263,13 +294,13 @@ export default function LearnPage() {
           <div></div>
         )}
 
-        {content.nextLesson ? (
+        {content?.nextLesson ? (
           <Button asChild>
             <Link
-              href={`/courses/CS101/learn/${content.nextLesson}`}
+              href={`/courses/CS101/learn/${content?.nextLesson}`}
               className="flex items-center gap-2"
             >
-              <span>Next: {syllabusContent[content.nextLesson as keyof typeof syllabusContent]?.title}</span>
+              <span>Next: {syllabusContent[content?.nextLesson as keyof typeof syllabusContent]?.title}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
