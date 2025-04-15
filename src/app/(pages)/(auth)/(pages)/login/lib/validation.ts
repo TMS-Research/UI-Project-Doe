@@ -7,6 +7,3 @@ export const loginSchema = z.object({
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
-export type LoginReqBody = Omit<LoginFormData, "rememberMe" | "email"> & {
-  username: string;
-};
