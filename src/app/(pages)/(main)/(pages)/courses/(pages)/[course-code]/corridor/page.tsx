@@ -11,26 +11,21 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Clock, Facebook, Linkedin, MessageCircle, Share2, Twitter, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
 import { toast } from "sonner";
+import { Course, CourseSection } from "@/types/api/course.dto";
 
 export default function CorridorPage() {
   const { "course-code": courseCode } = useParams();
+  const { activeCourse } = useCoursesStore();
 
-  const { data: course } = useQuery({
+  const { data: course } = useQuery<Course>({
     queryKey: ["course", courseCode],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/courses/${courseCode}`);
+      const response = await axiosInstance.get(`/courses/${activeCourse}`);
       return response.data;
     },
-    enabled: !!courseCode,
+    enabled: !!activeCourse,
   });
-
-  const { setActiveCourse } = useCoursesStore();
-
-  useEffect(() => {
-    setActiveCourse(courseCode as string);
-  }, [courseCode, setActiveCourse]);
 
   const corridorSections = [
     {
@@ -99,32 +94,6 @@ export default function CorridorPage() {
             </CardContent>
           </Card>
 
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>Learning Objectives</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc list-inside space-y-2 text-gray-600">
-                {course?.learning_objectives?.map((objective: any, index: number) => (
-                  <li key={index}>{objective}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Prerequisites</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc list-inside text-gray-600">
-                {course?.prerequisites?.map((prerequisite: any, index: number) => (
-                  <li key={index}>{prerequisite}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card> */}
-
           <Card>
             <CardHeader>
               <CardTitle>Course Syllabus</CardTitle>
@@ -135,7 +104,7 @@ export default function CorridorPage() {
                 collapsible
                 className="w-full"
               >
-                {course?.sections?.map((section: any, index: number) => (
+                {course?.sections?.map((section: CourseSection, index: number) => (
                   <AccordionItem
                     key={index}
                     value={`section-${index}`}
@@ -143,7 +112,7 @@ export default function CorridorPage() {
                     <AccordionTrigger>{section.title}</AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-4">
-                        {section.content?.topics?.map((topic: any, topicIndex: number) => (
+                        {section.content?.topics?.map((topic: string, topicIndex: number) => (
                           <div
                             key={topicIndex}
                             className="flex items-center justify-between text-sm"
@@ -204,7 +173,7 @@ export default function CorridorPage() {
                   asChild
                   className="w-full"
                 >
-                  <Link href={`/courses/${courseCode}/learn/${course?.sections[0].id}`}>Continue to Course</Link>
+                  <Link href={`/courses/${courseCode}/learn/${course?.sections?.[0]?.id}`}>Continue to Course</Link>
                 </Button>
               ) : (
                 <Button

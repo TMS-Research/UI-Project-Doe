@@ -1,39 +1,45 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { useCoursesStore } from "@/stores/courses-store";
 import Image from "next/image";
 import Link from "next/link";
+import { Course } from "@/types/api/course.dto";
 
-interface CourseCardProps {
-  id: string;
-  title: string;
-  code: string;
-  instructor_info: {
-    bio: string;
-    email: string;
-    name: string;
-  };
-  progress: number;
-  lastAccessed: string;
-  subject: string;
-  imageUrl?: string;
+type CourseCardProps = Pick<
+  Course,
+  | "id"
+  | "title"
+  | "code"
+  | "description"
+  | "category"
+  | "difficulty_level"
+  | "instructor_info"
+  | "progress"
+  | "lastAccessed"
+  | "imageUrl"
+> & {
   className?: string;
   isMyCourse?: boolean;
-}
+};
 
 export function CourseCard({
   id,
   title,
   code,
+  category,
   instructor_info,
-  progress,
-  lastAccessed,
-  subject,
+  progress = 0,
+  lastAccessed = "Never",
   imageUrl,
   className,
   isMyCourse,
 }: CourseCardProps) {
+  const { setActiveCourse } = useCoursesStore();
+
   return (
     <Card className={cn("overflow-hidden", className)}>
       <div className="flex gap-4 p-4">
@@ -50,12 +56,12 @@ export function CourseCard({
             <div className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-md bg-primary/20"></div>
           )}
         </div>
-        <div className="flex flex-col justify-between flex-1">
+        <div className="flex flex-1 flex-col justify-between">
           <div>
-            <div className="inline-flex px-2 py-1 rounded-full text-sm bg-primary/10 text-primary mb-2">{subject}</div>
+            <div className="inline-flex px-2 py-1 rounded-full text-sm bg-primary/10 text-primary mb-2">{category}</div>
             <h3 className="text-lg font-semibold">{title}</h3>
             <p className="text-sm text-muted-foreground">
-              {code} • {instructor_info?.name}
+              {code} • {instructor_info?.name || "Unknown Instructor"}
             </p>
           </div>
 
@@ -73,8 +79,9 @@ export function CourseCard({
                 variant="default"
                 size="sm"
                 asChild
+                onClick={() => setActiveCourse(id)}
               >
-                <Link href={`/courses/${id}/corridor`}>{isMyCourse ? "Continue" : "View Course"}</Link>
+                <Link href={`/courses/${code}/corridor`}>{isMyCourse ? "Continue" : "View Course"}</Link>
               </Button>
             </div>
           </div>

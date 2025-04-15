@@ -1,62 +1,42 @@
 "use client";
 
-import { CourseCard } from "@/app/(pages)/(main)/(pages)/dashboard/components/course-card";
-import { CourseSearch } from "@/app/(pages)/(main)/(pages)/dashboard/components/course-search";
+import { CourseCard } from "@/app/(pages)/(main)/components/course-card";
 import axiosInstance from "@/app/api/axios";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState } from "react";
+import { useCoursesStore } from "@/stores/courses-store";
+import { useEffect } from "react";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
-const continueLearningCourses = [
-  {
-    title: "Introduction to Computer Science",
-    code: "CS101",
-    instructor: "Dr. Alan Turing",
-    progress: 65,
-    lastAccessed: "2 days ago",
-    subject: "Computer Science",
-    imageUrl: "https://placehold.co/600x400/png",
-  },
-  {
-    title: "Calculus I",
-    code: "MATH201",
-    instructor: "Dr. Katherine Johnson",
-    progress: 42,
-    lastAccessed: "5 days ago",
-    subject: "Mathematics",
-    imageUrl: "https://placehold.co/600x400/png",
-  },
-];
+import { Course } from "@/types/api/course.dto";
 
 export default function DashboardPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("all subjects");
+  const { courses, fetchCourses } = useCoursesStore();
 
-  // Filter courses based on search query and selected subject
-  const filteredCourses = continueLearningCourses.filter((course) => {
-    const matchesSearch =
-      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.code.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSubject = selectedSubject === "all subjects" || course.subject === selectedSubject;
-    return matchesSearch && matchesSubject;
-  });
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
 
-  const { data: courses } = useQuery({
-    queryKey: ["courses"],
-    queryFn: async () => {
-      const response = await axiosInstance.get("/courses");
-      return response.data;
-    },
-  });
-
-  const { data: myCourses } = useQuery({
+  const { data: myCourses } = useQuery<Course[]>({
     queryKey: ["myCourses"],
     queryFn: async () => {
       const response = await axiosInstance.get("/courses/my");
       return response.data;
     },
   });
+
+  // Sample data for the chart - replace with real data later
+  const chartData = [
+    { name: "Mon", progress: 30 },
+    { name: "Tue", progress: 45 },
+    { name: "Wed", progress: 60 },
+    { name: "Thu", progress: 75 },
+    { name: "Fri", progress: 85 },
+    { name: "Sat", progress: 90 },
+    { name: "Sun", progress: 95 },
+  ];
 
   return (
     <div className="space-y-8 p-6">
@@ -65,28 +45,31 @@ export default function DashboardPage() {
         <p className="text-gray-600">Welcome to your learning journey!</p>
       </div>
 
-      <CourseSearch
-        onSearch={setSearchQuery}
-        onFilterChange={setSelectedSubject}
-      />
+      {/* Learning Progress Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Learning Progress</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[200px]">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <BarChart data={chartData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Bar
+                  dataKey="progress"
+                  fill="hsl(var(--primary))"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Continue Learning</h2>
-        <div className="grid gap-6">
-          {courses ? (
-            courses?.map((course: any) => (
-              <CourseCard
-                key={course.code}
-                {...course}
-                isMyCourse={false}
-              />
-            ))
-          ) : (
-            <p>No courses found</p>
-          )}
-        </div>
-      </div>
-
+      {/* My Courses Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">My Courses</h2>
@@ -94,15 +77,47 @@ export default function DashboardPage() {
             variant="link"
             asChild
           >
-            <Link href="/courses">View all</Link>
+            <Link href="/courses">View all courses</Link>
           </Button>
         </div>
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {myCourses?.map((course: any) => (
+          {myCourses?.map((course) => (
             <CourseCard
-              key={course.code}
-              {...course}
+              key={course.id}
+              id={course.id}
+              title={course.title}
+              code={course.code}
+              description={course.description}
+              category={course.category}
+              difficulty_level={course.difficulty_level}
+              instructor_info={course.instructor_info}
+              progress={course.progress || 0}
+              lastAccessed={course.lastAccessed || "Never"}
+              imageUrl={course.imageUrl}
               isMyCourse={true}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Recommended Courses Section */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Recommended for You</h2>
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {courses.slice(0, 3).map((course) => (
+            <CourseCard
+              key={course.id}
+              id={course.id}
+              title={course.title}
+              code={course.code}
+              description={course.description}
+              category={course.category}
+              difficulty_level={course.difficulty_level}
+              instructor_info={course.instructor_info}
+              progress={course.progress || 0}
+              lastAccessed={course.lastAccessed || "Never"}
+              imageUrl={course.imageUrl}
+              isMyCourse={false}
             />
           ))}
         </div>
