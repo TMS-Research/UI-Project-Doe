@@ -1,14 +1,13 @@
 "use client";
 
-import useLayoutStore from "@/stores/layout-store";
-import { usePathname } from "next/navigation";
-import { Home, MessageCircle, Settings } from "lucide-react";
-import { Book } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+import useLayoutStore from "@/stores/layout-store";
+import { Book, Home, Settings } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import SyllabusNavigation from "./syllabus-navigation";
 
 export default function Sidebar() {
@@ -32,8 +31,6 @@ export default function Sidebar() {
       <SyllabusSidebar />
     </AnimatePresence>
   );
-  // <div className="w-fit h-full border-r bg-white">
-  // </div>
 }
 
 const DefaultSidebar = () => {
@@ -42,7 +39,6 @@ const DefaultSidebar = () => {
   const menuItems = [
     { name: "Dashboard", icon: <Home />, href: "/dashboard" },
     { name: "Courses", icon: <Book />, href: "/courses" },
-    { name: "Messages", icon: <MessageCircle />, href: "/messages" },
     { name: "Settings", icon: <Settings />, href: "/settings" },
   ];
 

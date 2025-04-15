@@ -12,6 +12,7 @@ import { AcademicProfileFormData, academicProfileSchema } from "../lib/validatio
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/app/api/axios";
+import { Aspiration } from "@/types/api/aspiration.dto";
 
 const yearOptions = ["First Year", "Second Year", "Third Year", "Fourth Year", "Graduate Student", "Other"];
 
@@ -26,7 +27,7 @@ export default function AcademicProfileForm() {
     }
   }, [from, router]);
 
-  const { data: aspirations } = useQuery({
+  const { data: aspirations } = useQuery<Aspiration[]>({
     queryKey: ["aspirations"],
     queryFn: async () => {
       const response = await axiosInstance.get("/users/aspirations");
@@ -142,7 +143,7 @@ export default function AcademicProfileForm() {
 
           <FormField
             control={form.control}
-            name="goals"
+            name="careerGoals"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Career Goals (Optional)</FormLabel>
@@ -156,7 +157,7 @@ export default function AcademicProfileForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {aspirations?.map((aspiration: any) => (
+                    {aspirations?.map((aspiration: Aspiration) => (
                       <SelectItem
                         key={aspiration.id}
                         value={aspiration.title}

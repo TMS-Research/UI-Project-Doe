@@ -10,6 +10,7 @@ import axiosInstance from "@/app/api/axios";
 import { useEffect } from "react";
 import { useSectionsStore } from "@/stores/sections-store";
 import { useCoursesStore } from "@/stores/courses-store";
+import { SyllabusContent } from "@/types/api/syllabus.dto";
 
 // Define types for content items
 interface TextContent {
@@ -173,7 +174,7 @@ export default function LearnPage() {
   const { setActiveSection } = useSectionsStore();
   const { setActiveCourse } = useCoursesStore();
 
-  const { data: content } = useQuery({
+  const { data: content } = useQuery<SyllabusContent>({
     queryKey: ["content", courseCode],
     queryFn: async () => {
       const response = await axiosInstance.get(`/courses/${courseCode}/sections/${syllabusCode}`);
@@ -249,7 +250,7 @@ export default function LearnPage() {
         <p className="text-muted-foreground">{content?.description}</p>
 
         <div className="space-y-4">
-          {content?.content.topics.map((item, index) => (
+          {content?.content.topics.map((item: string, index: number) => (
             <div
               key={index}
               className="inline-flex px-2 py-1 rounded-full text-sm bg-primary/10 text-primary mr-2 mb-2"
@@ -264,7 +265,7 @@ export default function LearnPage() {
         <h2 className="text-xl font-semibold">Resources</h2>
 
         <div className="space-y-4">
-          {content?.content.resources.map((item, index) => (
+          {content?.content.resources.map((item: string, index: number) => (
             <div
               key={index}
               className="inline-flex px-2 py-1 rounded-full text-sm bg-primary/10 text-primary mr-2 mb-2"

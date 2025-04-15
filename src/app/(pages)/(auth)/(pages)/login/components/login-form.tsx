@@ -52,9 +52,10 @@ export default function LoginForm() {
       if (success) {
         router.push("/dashboard");
       }
+      setIsLoading(false);
       form.reset();
     },
-    onSettled: () => {
+    onError: () => {
       setIsLoading(false);
     },
   });
