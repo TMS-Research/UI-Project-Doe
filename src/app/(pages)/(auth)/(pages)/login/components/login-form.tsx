@@ -11,7 +11,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { LoginFormData, LoginReqBody, loginSchema } from "../lib/validation";
+import { LoginFormData, loginSchema } from "../lib/validation";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -36,13 +36,10 @@ export default function LoginForm() {
   });
 
   const { mutate } = useMutation({
-    mutationFn: async (data: LoginReqBody) => {
+    mutationFn: async (data: LoginFormData) => {
       setIsLoading(true);
-      const formData = new FormData();
-      formData.append("username", data.username);
-      formData.append("password", data.password);
 
-      const response = await axiosInstance.postForm("/auth/login", formData);
+      const response = await axiosInstance.post("/auth/login", data);
       return response.data;
     },
     mutationKey: ["login"],
@@ -60,14 +57,6 @@ export default function LoginForm() {
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
-    const reqBody: LoginReqBody = {
-      username: data.email,
-      password: data.password,
-    };
-    mutate(reqBody);
-  };
-
   return (
     <div className="w-full max-w-md space-y-8 m-auto">
       <div>
@@ -75,7 +64,7 @@ export default function LoginForm() {
       </div>
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit((data) => mutate(data))}
           className="space-y-4"
         >
           <FormField

@@ -4,16 +4,16 @@ import axiosInstance from "@/app/api/axios";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/stores/auth-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { RegisterFormData, RegisterReqBody, registerSchema } from "../lib/validation";
-import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { LoginReqBody } from "../../login/lib/validation";
-import { useAuthStore } from "@/stores/auth-store";
+import { useForm } from "react-hook-form";
+import { LoginFormData } from "../../login/lib/validation";
+import { RegisterFormData, registerSchema } from "../lib/validation";
 
 export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,10 +31,16 @@ export default function RegisterForm() {
   });
 
   const { mutate: mutateRegister } = useMutation({
-    mutationFn: async (data: RegisterReqBody) => {
+    mutationFn: async (data: RegisterFormData) => {
       setIsLoading(true);
-      await axiosInstance.post("/auth/register", data);
-      mutateLogin({ username: data.email, password: data.password });
+
+      await axiosInstance.post("/auth/register", {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+
+      mutateLogin({ email: data.email, password: data.password });
     },
     mutationKey: ["register"],
     onError: () => {
@@ -43,13 +49,9 @@ export default function RegisterForm() {
   });
 
   const { mutate: mutateLogin } = useMutation({
-    mutationFn: async (data: LoginReqBody) => {
+    mutationFn: async (data: LoginFormData) => {
       setIsLoading(true);
-      const formData = new FormData();
-      formData.append("username", data.username);
-      formData.append("password", data.password);
-
-      const response = await axiosInstance.postForm("/auth/login", formData);
+      const response = await axiosInstance.post("/auth/login", data);
       return response.data;
     },
     mutationKey: ["login"],
@@ -66,15 +68,6 @@ export default function RegisterForm() {
     },
   });
 
-  const onSubmit = async (data: RegisterFormData) => {
-    const reqBody: RegisterReqBody = {
-      name: data.name,
-      email: data.email,
-      password: data.password,
-    };
-    mutateRegister(reqBody);
-  };
-
   return (
     <div className="w-full max-w-md space-y-8 m-auto">
       <div>
@@ -82,7 +75,7 @@ export default function RegisterForm() {
       </div>
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit((data) => mutateRegister(data))}
           className="space-y-4"
         >
           <FormField
