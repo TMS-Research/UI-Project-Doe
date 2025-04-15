@@ -5,8 +5,17 @@ import { CourseSearch } from "@/app/(pages)/(main)/(pages)/dashboard/components/
 import axiosInstance from "@/app/api/axios";
 import { useQuery } from "@tanstack/react-query";
 import { Course } from "@/types/api/course.dto";
+import { Suspense } from "react";
 
 export default function CoursesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CoursesContent />
+    </Suspense>
+  );
+}
+
+function CoursesContent() {
   const { data: courses = [] } = useQuery<Course[]>({
     queryKey: ["courses"],
     queryFn: async () => {
