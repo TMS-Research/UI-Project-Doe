@@ -5,9 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useCoursesStore } from "@/stores/courses-store";
-import Image from "next/image";
-import Link from "next/link";
 import { Course } from "@/types/api/course.dto";
+import Link from "next/link";
 
 type CourseCardProps = Pick<
   Course,
@@ -34,7 +33,7 @@ export function CourseCard({
   instructor_info,
   progress = 0,
   lastAccessed = "Never",
-  imageUrl,
+  imageUrl = "",
   className,
   isMyCourse,
 }: CourseCardProps) {
@@ -44,7 +43,7 @@ export function CourseCard({
     <Card className={cn("overflow-hidden", className)}>
       <div className="flex gap-4 p-4">
         <div className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-md">
-          {imageUrl ? (
+          {/* {imageUrl ? (
             <Image
               src={imageUrl}
               alt={title}
@@ -53,8 +52,8 @@ export function CourseCard({
               height={128}
             />
           ) : (
-            <div className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-md bg-primary/20"></div>
-          )}
+          )} */}
+          <div className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-md bg-primary/20"></div>
         </div>
         <div className="flex flex-1 flex-col justify-between">
           <div>

@@ -10,7 +10,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
 
   return (
-    <div className={cn("flex gap-3 p-4 bg-white")}>
+    <div className={cn("flex gap-3 p-4 bg-background")}>
       <div
         className={cn(
           "flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full",

@@ -14,7 +14,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <Topbar />
       <div className="flex w-full">
         <Sidebar />
-        <main className="w-full pt-[62px] overflow-auto p-4 bg-secondary min-h-screen">{children}</main>
+        <main className="w-full pt-[62px] overflow-auto p-4 bg-muted-300 min-h-screen">{children}</main>
         <AIAssistant />
       </div>
     </div>

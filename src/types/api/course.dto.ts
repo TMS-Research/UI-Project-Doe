@@ -1,11 +1,14 @@
 export interface CourseSection {
   id: string;
   title: string;
-  description: string;
   order: number;
-  content?: {
-    topics: string[];
-  };
+}
+
+export interface CourseTopic {
+  id: string;
+  title: string;
+  topic_order: number;
+  sections: CourseSection[];
 }
 
 export interface Course {
@@ -17,12 +20,21 @@ export interface Course {
   difficulty_level: string;
   instructor_info: {
     name: string;
-    title: string;
-    avatar?: string;
+    bio: string;
+    email: string;
   };
-  progress: number;
-  lastAccessed: string;
+  created_at: string;
+  updated_at: string | null;
+  topics: CourseTopic[];
+  is_enrolled: boolean;
+  enrollment_date: string;
+  completion_percentage: string;
+  // Additional properties for dashboard display
   imageUrl?: string;
-  is_enrolled?: boolean;
-  sections?: CourseSection[];
+  instructor?: string;
+  duration?: string;
+  level?: string;
+  rating?: number;
+  enrolled?: number;
+  image?: string;
 }

@@ -27,13 +27,13 @@ export default function SettingsPage() {
       <p className="text-gray-600 mb-6">Manage your account and preferences</p>
 
       <div className="flex gap-6">
-        <div className="w-64 bg-white rounded-lg shadow p-4">
+        <div className="w-64 bg-background rounded-lg shadow p-4">
           {menuItems.map((item) => (
             <Button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               variant={activeTab === item.id ? "light" : "ghost"}
-              className={cn("w-full justify-start mb-2", activeTab === item.id ? "text-primary" : "text-black")}
+              className={cn("w-full justify-start mb-2", activeTab === item.id ? "text-primary" : "text-foreground")}
             >
               {item.icon}
               <span className="ml-2">{item.label}</span>

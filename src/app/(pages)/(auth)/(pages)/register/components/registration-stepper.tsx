@@ -43,7 +43,7 @@ export default function RegistrationStepper() {
                       "size-8 rounded-full flex items-center justify-center text-sm font-medium border-2",
                       isActive && "border-blue-600 bg-blue-50 text-blue-600",
                       isCompleted && "border-green-600 bg-green-600 text-white",
-                      !isActive && !isCompleted && "border-gray-300 bg-white text-gray-500",
+                      !isActive && !isCompleted && "border-gray-300 bg-background text-gray-500",
                     )}
                   >
                     {isCompleted ? <Check className="h-4 w-4 text-white" /> : index + 1}

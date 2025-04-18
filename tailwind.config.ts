@@ -19,6 +19,8 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+          muted: "hsl(var(--card-muted))",
+          hover: "hsl(var(--card-hover))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -27,14 +29,21 @@ const config: Config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          muted: "hsl(var(--primary-muted))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          muted: "hsl(var(--secondary-muted))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
+          100: "hsl(var(--muted-100))",
+          200: "hsl(var(--muted-200))",
+          300: "hsl(var(--muted-300))",
+          400: "hsl(var(--muted-400))",
+          500: "hsl(var(--muted-500))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
@@ -81,6 +90,10 @@ const config: Config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      backgroundImage: {
+        "muted-gradient": "linear-gradient(to bottom right, hsl(var(--muted-100)), hsl(var(--muted-300)))",
+        "card-gradient": "linear-gradient(to bottom right, hsl(var(--card)), hsl(var(--card-muted)))",
       },
     },
   },
