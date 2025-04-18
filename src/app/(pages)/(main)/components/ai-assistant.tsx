@@ -20,7 +20,7 @@ export default function AIAssistant() {
         animate={{ width: "20rem" }}
         exit={{ width: "0px" }}
         transition={{ duration: 0.3 }}
-        className="h-screen overflow-hidden pt-[62px] text-primary-foreground flex flex-col border-r sticky top-0 left-0 z-40 bg-white flex-[0_0_auto]"
+        className="h-screen overflow-hidden pt-[62px] text-primary-foreground flex flex-col border-r sticky top-0 left-0 z-40 bg-background flex-[0_0_auto]"
       >
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="font-semibold text-foreground">AI Assistant</h2>

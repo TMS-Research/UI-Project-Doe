@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import axiosInstance from "@/app/api/axios";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -8,32 +9,52 @@ import { Progress } from "@/components/ui/progress";
 import { queryClient } from "@/lib/react-query";
 import { useCoursesStore } from "@/stores/courses-store";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Clock, Facebook, Linkedin, MessageCircle, Share2, Twitter, Users } from "lucide-react";
+import { BookOpen, Clock, Facebook, Linkedin, MessageCircle, Share2, Twitter, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
-import { Course, CourseSection } from "@/types/api/course.dto";
+import { Course, CourseSection, CourseTopic } from "@/types/api/course.dto";
+import EnrollmentFlowDialog from "./components/enrollment-flow-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function CorridorPage() {
   const { "course-code": courseCode } = useParams();
   const { activeCourse } = useCoursesStore();
+  const [showEnrollmentFlow, setShowEnrollmentFlow] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const { data: course } = useQuery<Course>({
     queryKey: ["course", courseCode],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/courses/${activeCourse}`);
+      const response = await axiosInstance.get(`/courses/${activeCourse?.id}`);
       return response.data;
     },
     enabled: !!activeCourse,
   });
 
+  useEffect(() => {
+    setShowEnrollmentFlow(true);
+  }, [course]);
+
   const corridorSections = [
+    {
+      title: "Course Syllabus",
+      description: "View the complete course structure and learning path",
+      icon: <BookOpen className="w-6 h-6" />,
+      href: `/courses/${courseCode}/learn/syllabus`,
+    },
     {
       title: "Discussion Forum",
       description: "Engage with your peers and instructors",
       icon: <MessageCircle className="w-6 h-6" />,
-      href: `/courses/${courseCode}/forum`,
-      stats: "156 discussions",
+      href: `/courses/${courseCode}/discussion`,
     },
     {
       title: "Study Groups",
@@ -46,23 +67,59 @@ export default function CorridorPage() {
 
   const { mutate: enrollCourse } = useMutation({
     mutationFn: async () => {
-      const response = await axiosInstance.post(`/courses/${courseCode}/enroll`);
+      const response = await axiosInstance.post(`/courses/${activeCourse?.id}/enroll`);
       return response.data;
     },
     mutationKey: ["enrollCourse", courseCode],
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["course", courseCode] });
       toast.success("Course enrolled successfully");
+      setShowConfirmDialog(false);
+      setShowEnrollmentFlow(true);
     },
     onError: () => {
       toast.error("Failed to enroll in course");
+      setShowConfirmDialog(false);
     },
   });
 
   return (
     <div className="space-y-8">
+      {/* Enrollment Flow Dialog */}
+      <EnrollmentFlowDialog
+        isOpen={showEnrollmentFlow}
+        onClose={() => setShowEnrollmentFlow(false)}
+        courseCode={courseCode as string}
+        syllabusCode={course?.topics?.[0]?.sections?.[0]?.id ?? "1.1"}
+      />
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={showConfirmDialog}
+        onOpenChange={setShowConfirmDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Course Enrollment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to enroll in this course? You will have access to all course materials and can start
+              learning right away.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={() => enrollCourse()}>Confirm Enrollment</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Course Header */}
-      <div className="bg-white rounded-xl p-6 shadow">
+      <div className="bg-background rounded-xl p-6 shadow">
         <div className="flex flex-col gap-4">
           <div>
             <div className="inline-flex px-2 py-1 rounded-full text-sm bg-primary/10 text-primary mb-2">
@@ -74,9 +131,9 @@ export default function CorridorPage() {
           <div className="flex items-center gap-2">
             <div className="text-sm text-muted-foreground">Course Progress</div>
             <div className="flex-1">
-              <Progress value={course?.progress} />
+              <Progress value={Number(course?.completion_percentage)} />
             </div>
-            <div className="text-sm font-medium">{course?.progress}%</div>
+            <div className="text-sm font-medium">{course?.completion_percentage}%</div>
           </div>
         </div>
       </div>
@@ -104,7 +161,7 @@ export default function CorridorPage() {
                 collapsible
                 className="w-full"
               >
-                {course?.sections?.map((section: CourseSection, index: number) => (
+                {course?.topics?.map((section: CourseTopic, index: number) => (
                   <AccordionItem
                     key={index}
                     value={`section-${index}`}
@@ -112,14 +169,14 @@ export default function CorridorPage() {
                     <AccordionTrigger>{section.title}</AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-4">
-                        {section.content?.topics?.map((topic: string, topicIndex: number) => (
+                        {section.sections.map((topic: CourseSection, topicIndex: number) => (
                           <div
                             key={topicIndex}
                             className="flex items-center justify-between text-sm"
                           >
                             <div className="flex items-center gap-2">
                               <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-                              <span>{topic}</span>
+                              <span>{topic.title}</span>
                             </div>
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <Clock className="w-4 h-4" />
@@ -173,12 +230,14 @@ export default function CorridorPage() {
                   asChild
                   className="w-full"
                 >
-                  <Link href={`/courses/${courseCode}/learn/${course?.sections?.[0]?.id}`}>Continue to Course</Link>
+                  <Link href={`/courses/${courseCode}/learn/${course?.topics?.[0]?.sections?.[0]?.id ?? "1.1"}`}>
+                    Continue to Course
+                  </Link>
                 </Button>
               ) : (
                 <Button
                   className="w-full"
-                  onClick={() => enrollCourse()}
+                  onClick={() => setShowConfirmDialog(true)}
                 >
                   Enroll Now
                 </Button>
@@ -201,7 +260,7 @@ export default function CorridorPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Credits:</span>
-                <span className="font-medium">{course?.sections?.length}</span>
+                <span className="font-medium">{course?.topics?.length}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Level:</span>

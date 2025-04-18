@@ -28,7 +28,7 @@ export default function Privacy() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-background rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-6">Privacy Controls</h2>
 
       <form

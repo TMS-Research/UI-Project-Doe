@@ -11,7 +11,7 @@ export default function Topbar() {
   };
 
   return (
-    <div className="flex items-center h-[62px] justify-between p-4 border-b fixed top-0 left-0 w-full z-50 bg-white">
+    <div className="flex items-center h-[62px] justify-between p-4 border-b fixed top-0 left-0 w-full z-50 bg-background">
       <Link
         href="/dashboard"
         className="flex items-center gap-4 font-bold text-2xl"

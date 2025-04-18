@@ -39,7 +39,7 @@ export default function HelpSupport() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-background rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-6">Help & Support</h2>
 
       <div className="mb-8">

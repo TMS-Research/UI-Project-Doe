@@ -50,7 +50,7 @@ export default function SyllabusNavigation() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col h-full w-[16rem]">
+    <div className="flex flex-col h-full w-[20rem]">
       <div className="p-4 border-b">
         <h2 className="font-semibold text-foreground">Course Syllabus</h2>
         <p className="text-xs text-muted-foreground">Navigate through course content</p>
@@ -67,7 +67,7 @@ export default function SyllabusNavigation() {
               value={chapter.id}
             >
               <AccordionTrigger className="px-4 hover:no-underline">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-foreground">
                   <Book className="h-4 w-4 text-primary" />
                   <span>{chapter.title}</span>
                 </div>

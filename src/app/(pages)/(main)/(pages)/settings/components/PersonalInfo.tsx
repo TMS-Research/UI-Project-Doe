@@ -32,7 +32,7 @@ export default function PersonalInfo() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-background rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
 
       <form

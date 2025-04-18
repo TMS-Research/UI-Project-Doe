@@ -1,6 +1,5 @@
 // stores/authStore.ts
 import axiosInstance from "@/app/api/axios";
-import { queryClient } from "@/lib/react-query";
 import Cookies from "js-cookie";
 import { create } from "zustand";
 
@@ -29,20 +28,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
 
     set({ accessToken });
-    console.log("Login - Access token:", Cookies.get("accessToken"));
-    console.log("Login - User:", accessToken);
 
     try {
-      const user = await queryClient.fetchQuery({
-        queryKey: ["user"],
-        queryFn: async () => {
-          console.log("Login - Making /users/me request with token:", accessToken);
-          const response = await axiosInstance.get("/users/me");
-          console.log("Login - Response:", response);
-          return response.data;
-        },
-      });
-
+      const response = await axiosInstance.get("/users/me");
+      const user = response.data;
       set({ user });
       return true;
     } catch (error) {

@@ -5,9 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useCoursesStore } from "@/stores/courses-store";
-import Image from "next/image";
-import Link from "next/link";
 import { Course } from "@/types/api/course.dto";
+import Link from "next/link";
 
 type CourseCardProps = Pick<
   Course,
@@ -18,12 +17,12 @@ type CourseCardProps = Pick<
   | "category"
   | "difficulty_level"
   | "instructor_info"
-  | "progress"
-  | "lastAccessed"
-  | "imageUrl"
+  | "completion_percentage"
 > & {
   className?: string;
   isMyCourse?: boolean;
+  lastAccessed?: string;
+  imageUrl?: string;
 };
 
 export function CourseCard({
@@ -32,9 +31,7 @@ export function CourseCard({
   code,
   category,
   instructor_info,
-  progress = 0,
-  lastAccessed = "Never",
-  imageUrl,
+  completion_percentage = "0",
   className,
   isMyCourse,
 }: CourseCardProps) {
@@ -44,7 +41,7 @@ export function CourseCard({
     <Card className={cn("overflow-hidden", className)}>
       <div className="flex gap-4 p-4">
         <div className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-md">
-          {imageUrl ? (
+          {/* {imageUrl ? (
             <Image
               src={imageUrl}
               alt={title}
@@ -53,8 +50,8 @@ export function CourseCard({
               height={128}
             />
           ) : (
-            <div className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-md bg-primary/20"></div>
-          )}
+          )} */}
+          <div className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-md bg-primary/20"></div>
         </div>
         <div className="flex flex-1 flex-col justify-between">
           <div>
@@ -69,12 +66,12 @@ export function CourseCard({
             <div className="flex items-center gap-2">
               <div className="text-sm text-muted-foreground">Progress</div>
               <div className="flex-1">
-                <Progress value={progress} />
+                <Progress value={Number(completion_percentage)} />
               </div>
-              <div className="text-sm font-medium">{progress}%</div>
+              <div className="text-sm font-medium">{completion_percentage}%</div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Last accessed: {lastAccessed}</span>
+              <span className="text-sm text-muted-foreground">Last accessed: Mon, 12 Apr 2025</span>
               <Button
                 variant="default"
                 size="sm"

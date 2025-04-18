@@ -44,8 +44,7 @@ function CoursesContent() {
             category={course.category}
             difficulty_level={course.difficulty_level}
             instructor_info={course.instructor_info}
-            progress={course.progress || 0}
-            lastAccessed={course.lastAccessed || "Never"}
+            completion_percentage={course.completion_percentage || "0"}
             imageUrl={course.imageUrl}
             isMyCourse={false}
           />
