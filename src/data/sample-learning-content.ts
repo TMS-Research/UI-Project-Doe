@@ -1,82 +1,53 @@
 import { LearningContent } from "@/components/LearningContentPanel";
 
 export const sampleLearningContent: LearningContent = {
-  conceptExplanation: {
-    mainConcepts: [
-      "Data structures are ways of organizing data in a computer so that it can be used efficiently",
-      "Arrays are collections of elements stored at contiguous memory locations",
-      "Linked lists consist of nodes where each node contains a data field and a reference to the next node",
-      "Time complexity measures how the running time of an algorithm increases with the size of the input",
-      "Space complexity measures the amount of memory an algorithm uses relative to its input size",
-    ],
-    keyTerms: [
-      {
-        term: "Data Structure",
-        definition:
-          "A way of organizing data in a computer so that it can be used efficiently. Different types of data structures are suited for different kinds of applications, and some are highly specialized for specific tasks.",
-      },
-      {
-        term: "Array",
-        definition:
-          "A collection of elements stored at contiguous memory locations. The idea is to store multiple items of the same type together. This makes it easier to calculate the position of each element by simply adding an offset to a base value.",
-      },
-      {
-        term: "Linked List",
-        definition:
-          "A linear data structure where elements are stored in nodes, and each node points to the next node in the sequence. This creates a chain-like structure where each element knows where to find the next one.",
-      },
-      {
-        term: "Time Complexity",
-        definition:
-          "A measure of how the running time of an algorithm increases with the size of the input. It's usually expressed using Big O notation, which describes the worst-case scenario.",
-      },
-      {
-        term: "Space Complexity",
-        definition:
-          "A measure of the amount of memory an algorithm uses relative to its input size. Like time complexity, it's often expressed using Big O notation.",
-      },
-    ],
-    formulas: [
-      {
-        name: "Array Index Calculation",
-        formula: "Base Address + (Index × Element Size)",
-        explanation:
-          "To find the memory address of an element in an array, multiply its index by the size of each element and add the base address of the array.",
-      },
-      {
-        name: "Linked List Traversal",
-        formula: "Current = Current.Next",
-        explanation:
-          "To move through a linked list, update the current pointer to point to the next node in the sequence.",
-      },
-      {
-        name: "Binary Search Time Complexity",
-        formula: "O(log n)",
-        explanation:
-          "Binary search has a logarithmic time complexity because it divides the search interval in half with each step.",
-      },
-    ],
-    examples: [
-      {
-        title: "Array vs Linked List",
-        description:
-          "Arrays provide fast access to elements using index but have fixed size. Linked lists allow dynamic size but require traversal to access elements.",
-        illustration: "https://example.com/array-vs-linkedlist.png",
-      },
-      {
-        title: "Time Complexity Comparison",
-        description:
-          "Linear search has O(n) time complexity while binary search has O(log n), making binary search much faster for large datasets.",
-        illustration: "https://example.com/time-complexity.png",
-      },
-      {
-        title: "Memory Layout",
-        description:
-          "Arrays use contiguous memory while linked lists use scattered memory with pointers connecting elements.",
-        illustration: "https://example.com/memory-layout.png",
-      },
-    ],
-  },
+  conceptExplanation: `# Data Structures: Fundamental Concepts
+
+## Main Concepts
+- Data structures are ways of organizing data in a computer so that it can be used efficiently
+- Arrays are collections of elements stored at contiguous memory locations
+- Linked lists consist of nodes where each node contains a data field and a reference to the next node
+- Time complexity measures how the running time of an algorithm increases with the size of the input
+- Space complexity measures the amount of memory an algorithm uses relative to its input size
+
+## Key Terms
+### Data Structure
+A way of organizing data in a computer so that it can be used efficiently. Different types of data structures are suited for different kinds of applications, and some are highly specialized for specific tasks.
+
+### Array
+A collection of elements stored at contiguous memory locations. The idea is to store multiple items of the same type together. This makes it easier to calculate the position of each element by simply adding an offset to a base value.
+
+### Linked List
+A linear data structure where elements are stored in nodes, and each node points to the next node in the sequence. This creates a chain-like structure where each element knows where to find the next one.
+
+### Time Complexity
+A measure of how the running time of an algorithm increases with the size of the input. It's usually expressed using Big O notation, which describes the worst-case scenario.
+
+### Space Complexity
+A measure of the amount of memory an algorithm uses relative to its input size. Like time complexity, it's often expressed using Big O notation.
+
+## Formulas
+### Array Index Calculation
+**Formula:** Base Address + (Index × Element Size)
+**Explanation:** To find the memory address of an element in an array, multiply its index by the size of each element and add the base address of the array.
+
+### Linked List Traversal
+**Formula:** Current = Current.Next
+**Explanation:** To move through a linked list, update the current pointer to point to the next node in the sequence.
+
+### Binary Search Time Complexity
+**Formula:** O(log n)
+**Explanation:** Binary search has a logarithmic time complexity because it divides the search interval in half with each step.
+
+## Examples
+### Array vs Linked List
+Arrays provide fast access to elements using index but have fixed size. Linked lists allow dynamic size but require traversal to access elements.
+
+### Time Complexity Comparison
+Linear search has O(n) time complexity while binary search has O(log n), making binary search much faster for large datasets.
+
+### Memory Layout
+Arrays use contiguous memory while linked lists use scattered memory with pointers connecting elements.`,
   problems: [
     {
       id: "P1",
