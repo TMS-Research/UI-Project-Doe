@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,7 @@ export function StudyBuddy({ className }: StudyBuddyProps) {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage = { role: "user", content: input };
+    const userMessage = { role: "user", content: input } as Message;
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -55,11 +55,13 @@ export function StudyBuddy({ className }: StudyBuddyProps) {
     <Card className={cn("w-full max-w-2xl mx-auto", className)}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Avatar
-            src="/study-buddy-avatar.png"
-            alt="Study Buddy"
-            fallback="🤖"
-          />
+          <Avatar>
+            <AvatarImage
+              src="/study-buddy-avatar.png"
+              alt="Study Buddy"
+            />
+            <AvatarFallback>🤖</AvatarFallback>
+          </Avatar>
           Study Buddy
         </CardTitle>
       </CardHeader>
@@ -71,11 +73,13 @@ export function StudyBuddy({ className }: StudyBuddyProps) {
                 key={index}
                 className={cn("flex gap-2", message.role === "assistant" && "flex-row-reverse")}
               >
-                <Avatar
-                  src={message.role === "assistant" ? "/study-buddy-avatar.png" : "/user-avatar.png"}
-                  alt={message.role === "assistant" ? "Study Buddy" : "User"}
-                  fallback={message.role === "assistant" ? "🤖" : "👤"}
-                />
+                <Avatar>
+                  <AvatarImage
+                    src={message.role === "assistant" ? "/study-buddy-avatar.png" : "/user-avatar.png"}
+                    alt={message.role === "assistant" ? "Study Buddy" : "User"}
+                  />
+                  <AvatarFallback>{message.role === "assistant" ? "🤖" : "👤"}</AvatarFallback>
+                </Avatar>
                 <div
                   className={cn(
                     "rounded-lg p-3 max-w-[80%]",
