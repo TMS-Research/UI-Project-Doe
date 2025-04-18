@@ -24,8 +24,8 @@ export function CourseContent() {
       <section className="bg-background rounded-xl p-6 shadow">
         <h2 className="text-2xl font-bold mb-4">Overview</h2>
         <p className="text-gray-600 mb-4">
-          In this lesson, we'll explore the fundamental concepts of data structures. You'll learn about different types
-          of data organizations and their practical applications in computer science.
+          In this lesson, we&apos;ll explore the fundamental concepts of data structures. You&apos;ll learn about
+          different types of data organizations and their practical applications in computer science.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           <Card className="p-4 flex items-center gap-3">

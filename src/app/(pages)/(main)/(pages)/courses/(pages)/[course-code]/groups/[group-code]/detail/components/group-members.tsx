@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface GroupMember {
   id: string;
   name: string;
@@ -21,7 +23,7 @@ export default function GroupMembers({ members }: GroupMembersProps) {
           >
             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
               {member.avatar ? (
-                <img
+                <Image
                   src={member.avatar}
                   alt={member.name}
                   className="h-full w-full object-cover"

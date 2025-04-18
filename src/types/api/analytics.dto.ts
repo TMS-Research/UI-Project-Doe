@@ -9,7 +9,7 @@ export interface StudyTimeAnalytics {
 export interface QuizPerformance {
   total_attempts: number;
   average_accuracy: number;
-  recent_scores: Array<Record<string, any>>;
+  recent_scores: Array<Record<string, number>>;
   topic_accuracy: Record<string, number>;
 }
 

@@ -125,7 +125,7 @@ export default function QuizPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [quizState.currentQuestionIndex, quizState.isSubmitted]);
+  }, [quizState.currentQuestionIndex, quizState.isSubmitted, quizState.answers, quizQuestions]);
 
   // Reset timer when moving to next question
   useEffect(() => {

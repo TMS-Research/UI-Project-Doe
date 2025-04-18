@@ -1,18 +1,17 @@
 "use client";
 
-import { useParams, useSearchParams } from "next/navigation";
+import axiosInstance from "@/app/api/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, CheckCircle, Clock, Book, HelpCircle } from "lucide-react";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import axiosInstance from "@/app/api/axios";
-import { useEffect, useState } from "react";
-import { useSectionsStore } from "@/stores/sections-store";
+import { Progress } from "@/components/ui/progress";
 import { useCoursesStore } from "@/stores/courses-store";
+import { useSectionsStore } from "@/stores/sections-store";
 import { SyllabusContent } from "@/types/api/syllabus.dto";
+import { useQuery } from "@tanstack/react-query";
+import { Book, CheckCircle, Clock, HelpCircle } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 // Practice question types
@@ -38,10 +37,8 @@ interface PracticeState {
 
 export default function PracticePage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const syllabusCode = params["syllabus-code"] as string;
   const courseCode = params["course-code"] as string;
-  const sessionId = searchParams.get("session");
 
   const { setActiveSection } = useSectionsStore();
   const { setActiveCourse } = useCoursesStore();

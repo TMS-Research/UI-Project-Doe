@@ -1,22 +1,21 @@
 "use client";
 
 import axiosInstance from "@/app/api/axios";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { useCoursesStore } from "@/stores/courses-store";
 import { AnalyticsData } from "@/types/api/analytics.dto";
 import { Course } from "@/types/api/course.dto";
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { BookOpen, Crown, Flame, Heart, Search, Target, Trophy, Zap } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Star, Users, Trophy, Flame, Award, Crown, BookOpen, Target, Zap, Heart, Music } from "lucide-react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 // Define badge types and their colors
 const BADGE_TYPES = {
@@ -131,139 +130,6 @@ const mockAnalyticsData: AnalyticsData = {
   last_updated: new Date().toISOString(),
 };
 
-// Mock courses data
-const mockMyCourses: Course[] = [
-  {
-    id: "1",
-    title: "Introduction to Programming",
-    code: "CS101",
-    description: "Learn the basics of programming with Python",
-    category: "Computer Science",
-    difficulty_level: "Beginner",
-    instructor_info: {
-      name: "Dr. Smith",
-      title: "Professor",
-      avatar: "/avatars/smith.jpg",
-    },
-    progress: 75,
-    lastAccessed: "2024-02-20",
-    instructor: "Dr. Smith",
-    duration: "12 weeks",
-    level: "Beginner",
-    rating: 4.5,
-    enrolled: 1200,
-    image: "/courses/programming.jpg",
-  },
-  {
-    id: "2",
-    title: "Data Structures and Algorithms",
-    code: "CS201",
-    description: "Master fundamental data structures and algorithms",
-    category: "Computer Science",
-    difficulty_level: "Intermediate",
-    instructor_info: {
-      name: "Prof. Johnson",
-      title: "Associate Professor",
-      avatar: "/avatars/johnson.jpg",
-    },
-    progress: 45,
-    lastAccessed: "2024-02-19",
-    instructor: "Prof. Johnson",
-    duration: "16 weeks",
-    level: "Intermediate",
-    rating: 4.8,
-    enrolled: 850,
-    image: "/courses/dsa.jpg",
-  },
-  {
-    id: "3",
-    title: "Web Development Fundamentals",
-    code: "CS301",
-    description: "Learn HTML, CSS, and JavaScript",
-    category: "Web Development",
-    difficulty_level: "Beginner",
-    instructor_info: {
-      name: "Sarah Wilson",
-      title: "Senior Developer",
-      avatar: "/avatars/wilson.jpg",
-    },
-    progress: 30,
-    lastAccessed: "2024-02-18",
-    instructor: "Sarah Wilson",
-    duration: "10 weeks",
-    level: "Beginner",
-    rating: 4.6,
-    enrolled: 1500,
-    image: "/courses/webdev.jpg",
-  },
-];
-
-const mockRecommendedCourses: Course[] = [
-  {
-    id: "4",
-    title: "Machine Learning Basics",
-    code: "CS401",
-    description: "Introduction to machine learning concepts",
-    category: "Artificial Intelligence",
-    difficulty_level: "Intermediate",
-    instructor_info: {
-      name: "Dr. Brown",
-      title: "Professor",
-      avatar: "/avatars/brown.jpg",
-    },
-    progress: 0,
-    lastAccessed: "",
-    instructor: "Dr. Brown",
-    duration: "14 weeks",
-    level: "Intermediate",
-    rating: 4.7,
-    enrolled: 950,
-    image: "/courses/ml.jpg",
-  },
-  {
-    id: "5",
-    title: "Database Design",
-    code: "CS501",
-    description: "Learn database design and SQL",
-    category: "Database",
-    difficulty_level: "Intermediate",
-    instructor_info: {
-      name: "Mike Davis",
-      title: "Database Expert",
-      avatar: "/avatars/davis.jpg",
-    },
-    progress: 0,
-    lastAccessed: "",
-    instructor: "Mike Davis",
-    duration: "12 weeks",
-    level: "Intermediate",
-    rating: 4.4,
-    enrolled: 780,
-    image: "/courses/database.jpg",
-  },
-  {
-    id: "6",
-    title: "Mobile App Development",
-    code: "CS601",
-    description: "Build iOS and Android apps",
-    category: "Mobile Development",
-    difficulty_level: "Advanced",
-    instructor_info: {
-      name: "Lisa Chen",
-      title: "Mobile Developer",
-      avatar: "/avatars/chen.jpg",
-    },
-    progress: 0,
-    lastAccessed: "",
-    instructor: "Lisa Chen",
-    duration: "16 weeks",
-    level: "Advanced",
-    rating: 4.9,
-    enrolled: 620,
-    image: "/courses/mobile.jpg",
-  },
-];
-
 // Monthly sales data for the chart
 const monthlyCourseEngagementData = [
   { name: "Apr 1", value: 65 },
@@ -276,37 +142,6 @@ const monthlyCourseEngagementData = [
   { name: "Apr 8", value: 65 },
   { name: "Apr 9", value: 75 },
   { name: "Apr 10", value: 80 },
-];
-
-// Popular courses data for the table
-const popularCoursesData = [
-  {
-    id: "1",
-    title: "Introduction to Machine Learning",
-    code: "ML101",
-    enrollments: 25,
-    price: "$100.99",
-    status: "Available",
-    views: "2K Views",
-  },
-  {
-    id: "2",
-    title: "Advanced Python Programming",
-    code: "PY302",
-    enrollments: 40,
-    price: "$120.49",
-    status: "Unavailable",
-    views: "1K Views",
-  },
-  {
-    id: "3",
-    title: "Web Development Masterclass",
-    code: "WD201",
-    enrollments: 60,
-    price: "$150.69",
-    status: "Available",
-    views: "3K Views",
-  },
 ];
 
 // Mock achievements data
@@ -425,11 +260,10 @@ export default function DashboardPage() {
       const response = await axiosInstance.get("/courses/my");
       return response.data;
     },
-    initialData: mockMyCourses,
   });
 
   // Using mock data with useQuery for analytics
-  const { data: analyticsData, isLoading: isAnalyticsLoading } = useQuery<AnalyticsData>({
+  const { data: analyticsData } = useQuery<AnalyticsData>({
     queryKey: ["analytics"],
     queryFn: async () => {
       // In development, return mock data
@@ -441,21 +275,6 @@ export default function DashboardPage() {
       return response.data;
     },
     initialData: mockAnalyticsData,
-  });
-
-  // Using mock data with useQuery for popular courses
-  const { data: popularCourses } = useQuery<Course[]>({
-    queryKey: ["popularCourses"],
-    queryFn: async () => {
-      // In development, return mock data
-      if (process.env.NODE_ENV === "development") {
-        return Promise.resolve(mockRecommendedCourses);
-      }
-      // In production, use the real API
-      const response = await axiosInstance.get("/courses/popular");
-      return response.data;
-    },
-    initialData: mockRecommendedCourses,
   });
 
   // Using mock data with useQuery for achievements
@@ -709,7 +528,7 @@ export default function DashboardPage() {
                   {badge.unlocked && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
                       <Trophy className="w-3 h-3" />
-                      Unlocked on {new Date(badge.dateUnlocked).toLocaleDateString()}
+                      Unlocked on {new Date().toLocaleDateString()}
                     </p>
                   )}
                 </div>
@@ -731,7 +550,7 @@ export default function DashboardPage() {
           </a>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {myCourses.map((course) => (
+          {myCourses?.map((course) => (
             <Card
               key={course.id}
               className="overflow-hidden"
@@ -763,12 +582,12 @@ export default function DashboardPage() {
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
                   <div
                     className="bg-primary h-2.5 rounded-full"
-                    style={{ width: `${course.progress}%` }}
+                    style={{ width: `${course.completion_percentage}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-sm mb-4">
                   <span>Progress</span>
-                  <span>{course.progress}%</span>
+                  <span>{course.completion_percentage}%</span>
                 </div>
                 <Button
                   className="w-full"
@@ -783,72 +602,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Popular Courses Section */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Popular Courses</h2>
-          <Button
-            variant="outline"
-            onClick={() => router.push("/courses")}
-          >
-            View All Courses
-          </Button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses?.map((course) => (
-            <Card
-              key={course.id}
-              className="group hover:shadow-lg transition-shadow"
-            >
-              <CardHeader className="p-0">
-                <div className="relative aspect-video">
-                  <Image
-                    src={course.image || "/placeholder-course.jpg"}
-                    alt={course.title}
-                    fill
-                    className="object-cover rounded-t-lg"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                  <Badge className="absolute top-2 right-2 bg-primary/90">{course.level}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="secondary">{course.category}</Badge>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span>{course.rating}</span>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold line-clamp-2">{course.title}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{course.duration}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      <span>{course.enrolled} enrolled</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="p-4 pt-0">
-                <Button
-                  className="w-full"
-                  asChild
-                  onClick={() => setActiveCourse(course.id)}
-                >
-                  <Link href={`/courses/${course.code}/corridor`}>View Course</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </section>
-
       {/* Recommended Courses Section */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -861,7 +614,7 @@ export default function DashboardPage() {
           </a>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockRecommendedCourses.map((course) => (
+          {courses?.map((course) => (
             <Card
               key={course.id}
               className="overflow-hidden"
