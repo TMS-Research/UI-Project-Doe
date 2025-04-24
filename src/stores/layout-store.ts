@@ -10,16 +10,18 @@ interface LayoutState {
   setSidebarContent: (content: SidebarContent) => void;
   setTopbarTitle: (title: string) => void;
   toggleSidebar: () => void;
+  setIsSidebarCollapsed: (collapsed: boolean) => void;
 }
 
 // Create the store
 const useLayoutStore = create<LayoutState>((set) => ({
   sidebarContent: "default",
   topbarTitle: "Study Buddy",
-  isSidebarCollapsed: false,
+  isSidebarCollapsed: true,
   setSidebarContent: (content) => set({ sidebarContent: content }),
   setTopbarTitle: (title) => set({ topbarTitle: title }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+  setIsSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
 }));
 
 export default useLayoutStore;

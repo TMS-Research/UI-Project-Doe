@@ -1,19 +1,18 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Loader2, Upload, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import axiosInstance from "@/app/api/axios";
-import { Course, CourseSection, CourseTopic } from "@/types/api/course.dto";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "sonner";
 import { useCoursesStore } from "@/stores/courses-store";
-import { Textarea } from "@/components/ui/textarea";
+import { Course, CourseSection, CourseTopic } from "@/types/api/course.dto";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Loader2, Upload, FileText } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 interface EnrollmentFlowDialogProps {
   isOpen: boolean;
@@ -23,6 +22,7 @@ interface EnrollmentFlowDialogProps {
 }
 
 type Step = "plan" | "content" | "loading";
+type LoadingState = "uploading" | "analyzing" | "creating-quiz" | null;
 
 interface CreateLearningPlanPayload {
   course_id: string;
@@ -36,20 +36,32 @@ interface CreateLearningPlanPayload {
 }
 
 export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: EnrollmentFlowDialogProps) {
-  const [currentStep, setCurrentStep] = useState<Step>("content");
+  const [currentStep, setCurrentStep] = useState<Step>("plan");
+  const [loadingState, setLoadingState] = useState<LoadingState>(null);
   const [selectedOption, setSelectedOption] = useState<string>("new");
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { activeCourse } = useCoursesStore();
+
+  // Clear interval on unmount
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Fetch course data including topics and sections
   const { data: course, isLoading } = useQuery<Course>({
     queryKey: ["course", courseCode],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/courses/${courseCode}`);
+      const response = await axiosInstance.get(`/courses/${activeCourse?.id}`);
       return response.data;
     },
     enabled: !!courseCode,
@@ -72,33 +84,67 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
   });
 
   // Upload content mutation
-  const { mutate: uploadContent, isPending: isUploading } = useMutation({
+  const { mutate: uploadContent } = useMutation({
     mutationFn: async () => {
-      if (!file) return;
+      if (!file) {
+        throw new Error("No file selected");
+      }
+
+      // Start the mock progress
+      setUploadProgress(0);
+      progressIntervalRef.current = setInterval(() => {
+        setUploadProgress((prev) => {
+          const increment = Math.max(1, Math.floor((100 - prev) / 10));
+          return Math.min(prev + increment, 95);
+        });
+      }, 2000);
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("title", title);
-
-      if (description) {
-        formData.append("description", description);
-      }
 
       if (activeCourse?.id) {
         formData.append("course_id", activeCourse.id);
       }
 
-      const response = await axiosInstance.postForm("/content/upload", formData);
+      const response = await axiosInstance.post("/student-resources/document", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       return response.data;
     },
+    onMutate: () => {
+      setIsUploading(true);
+      setLoadingState("uploading");
+    },
     onSuccess: () => {
-      toast.success("Content uploaded successfully");
-      setCurrentStep("loading");
+      // Clear the interval and set progress to 100%
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      setUploadProgress(100);
+
+      // Wait a moment to show 100% before closing
+      setTimeout(() => {
+        toast.success("Resource uploaded successfully");
+        onClose();
+      }, 500);
     },
     onError: (error) => {
-      toast.error("Failed to upload content");
-      console.error("Error uploading content:", error);
+      // Clear the interval on error
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      setUploadProgress(0);
+      setLoadingState(null);
+      toast.error("Failed to upload resource");
+      console.error("Error uploading resource:", error);
+    },
+    onSettled: () => {
+      setIsUploading(false);
     },
   });
 
@@ -149,35 +195,13 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFile = e.target.files?.[0];
     if (newFile) {
-      const defaultTitle = newFile.name.split(".")[0];
-      setTitle(defaultTitle);
       setFile(newFile);
-
-      // Trigger upload immediately with the file and default title
-      const formData = new FormData();
-      formData.append("file", newFile);
-      formData.append("title", defaultTitle);
-
-      if (activeCourse?.id) {
-        formData.append("course_id", activeCourse.id);
-      }
-
       uploadContent();
     }
   };
 
   const handleRemoveFile = () => {
     setFile(null);
-    setTitle("");
-    setDescription("");
-  };
-
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.target.value);
-  };
-
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setDescription(e.target.value);
   };
 
   const handleNextStep = async () => {
@@ -206,9 +230,27 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
         setCurrentStep("content");
       }
     } else if (currentStep === "content") {
-      setCurrentStep("loading");
-      await new Promise((resolve) => setTimeout(resolve, 3000));
       onClose();
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const newFile = e.dataTransfer.files?.[0];
+    if (newFile) {
+      setFile(newFile);
+      uploadContent();
     }
   };
 
@@ -236,7 +278,7 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
                   </Label>
                   <p className="text-sm text-muted-foreground">Pick specific sections you want to learn</p>
                   {selectedOption === "new" && (
-                    <ScrollArea className="h-[400px] mt-2">
+                    <ScrollArea className="max-h-[300px] mt-2">
                       <div className="space-y-4 pr-4">
                         {isLoading ? (
                           <div className="flex items-center justify-center py-4">
@@ -314,84 +356,67 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
       case "content":
         return (
           <div className="space-y-4">
-            <div className="border-2 border-dashed rounded-lg p-6">
-              <div className="flex flex-col items-center gap-4">
-                <Input
-                  type="file"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <Label
-                  htmlFor="file-upload"
-                  className="cursor-pointer flex flex-col items-center gap-2"
-                >
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                  <span className="text-sm font-medium">Click to upload file</span>
-                  <span className="text-xs text-muted-foreground">or drag and drop</span>
-                </Label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => document.getElementById("file-upload")?.click()}
-                  className="mt-2"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Add Document
-                </Button>
-              </div>
-              {file && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium mb-2">Selected file:</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 px-3 py-1"
-                    >
-                      <span className="max-w-[150px] truncate">{file.name}</span>
-                      <button
-                        onClick={handleRemoveFile}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  </div>
-                </div>
+            <div
+              className={cn(
+                "border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors",
+                isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25",
+                file ? "border-primary bg-primary/5" : "",
               )}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById("file-upload")?.click()}
+            >
+              {file ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-8 w-8 text-primary" />
+                    <p className="font-medium">{file.name}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Document file</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFile();
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-center font-medium">Drag and drop your file here</p>
+                  <p className="text-sm text-muted-foreground">or click to browse</p>
+                  <p className="text-xs text-muted-foreground mt-2">Supported files: documents, audio, and images</p>
+                </>
+              )}
+              <input
+                id="file-upload"
+                type="file"
+                className="hidden"
+                accept=".pdf,.doc,.docx,.txt,.rtf,.odt,.xls,.xlsx,.ppt,.pptx,.mp3,.wav,.ogg,.m4a,.aac,.flac,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp"
+                onChange={handleFileChange}
+              />
             </div>
 
-            {file && (
-              <div className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={handleTitleChange}
-                    placeholder="Enter title for your content"
-                  />
+            {/* Upload Progress Bar */}
+            {isUploading && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Uploading...</span>
+                  <span>{uploadProgress}%</span>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description (Optional)</Label>
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={handleDescriptionChange}
-                    placeholder="Enter description for your content"
-                    rows={3}
-                  />
-                </div>
-
-                {isUploading && (
-                  <div className="flex items-center justify-center py-2">
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    <span>Uploading document...</span>
-                  </div>
-                )}
+                <Progress
+                  value={uploadProgress}
+                  className="h-2"
+                />
               </div>
             )}
+
+            {/* {renderLoadingState()} */}
           </div>
         );
 
@@ -409,12 +434,40 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
     }
   };
 
+  const renderLoadingState = () => {
+    switch (loadingState) {
+      case "uploading":
+        return (
+          <div className="flex flex-col items-center justify-center py-4 space-y-2">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <p className="text-sm text-center">Uploading and scanning your lecture notes... ⏳</p>
+          </div>
+        );
+      case "analyzing":
+        return (
+          <div className="flex flex-col items-center justify-center py-4 space-y-2">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <p className="text-sm text-center">Almost done analyzing the document!</p>
+          </div>
+        );
+      case "creating-quiz":
+        return (
+          <div className="flex flex-col items-center justify-center py-4 space-y-2">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <p className="text-sm text-center">We&apos;ve created a practice quiz 📊 from your lecture!</p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Dialog
       open={isOpen}
       onOpenChange={onClose}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
             {currentStep === "plan" && "Choose Your Learning Path"}

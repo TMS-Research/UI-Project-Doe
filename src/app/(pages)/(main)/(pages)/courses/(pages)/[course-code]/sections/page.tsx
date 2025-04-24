@@ -1,19 +1,11 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useCoursesStore } from "@/stores/courses-store";
 import { SectionSearch } from "../components/section-search";
 import { SectionsList } from "../components/sections-list";
-import { useCoursesStore } from "@/stores/courses-store";
-import { useEffect } from "react";
 
 export default function CourseSectionsPage() {
-  const params = useParams();
-  const courseId = params["course-code"] as string;
-  const { setActiveCourse } = useCoursesStore();
-
-  useEffect(() => {
-    setActiveCourse(courseId);
-  }, [courseId, setActiveCourse]);
+  const { activeCourse } = useCoursesStore();
 
   return (
     <div className="space-y-8 p-6">
@@ -22,9 +14,9 @@ export default function CourseSectionsPage() {
         <p className="text-gray-600">Browse and search through course sections</p>
       </div>
 
-      <SectionSearch courseId={courseId} />
+      <SectionSearch courseId={activeCourse?.id ?? ""} />
 
-      <SectionsList courseId={courseId} />
+      <SectionsList courseId={activeCourse?.id ?? ""} />
     </div>
   );
 }

@@ -48,7 +48,7 @@
     --destructive-foreground: 0 0% 100%;
 
     --border: 260 20% 92%;
-    --input: 260 20% 92%;
+    --input: 260 20% 90%;
     --ring: 260 85% 50%;
 
     --radius: 1rem;
@@ -94,7 +94,7 @@
 
     /* Borders and inputs */
     --border: 250 33% 18%;
-    --input: 250 33% 16%;
+    --input: 250 33% 30%;
     --ring: 252 95% 65%;
   }
 }

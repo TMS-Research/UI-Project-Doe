@@ -60,7 +60,7 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md space-y-8 m-auto">
       <div>
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">Welcome Back 👋</h2>
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-foreground">Welcome Back 👋</h2>
       </div>
       <Form {...form}>
         <form
@@ -141,7 +141,7 @@ export default function LoginForm() {
           </Button>
 
           <div className="text-center text-sm">
-            <span className="text-gray-600">Don&apos;t have an account?</span>{" "}
+            <span className="text-muted-foreground">Don&apos;t have an account?</span>{" "}
             <Button
               variant="link"
               asChild

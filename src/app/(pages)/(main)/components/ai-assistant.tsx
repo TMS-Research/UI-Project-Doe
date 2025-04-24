@@ -1,16 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import useChatStore from "@/stores/chat-store";
 import useLayoutStore from "@/stores/layout-store";
 import { Trash2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import ChatInput from "./chat-input";
-import ChatMessage from "./chat-message";
+import { ChatContainer } from "./chat-container";
 
 export default function AIAssistant() {
-  const { messages, clearMessages, isLoading } = useChatStore();
+  const { clearMessages } = useChatStore();
   const { sidebarContent } = useLayoutStore();
 
   return sidebarContent == "syllabus" ? (
@@ -34,38 +33,7 @@ export default function AIAssistant() {
           </Button>
         </div>
 
-        <ScrollArea className="flex-1">
-          {messages.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground">
-              <p>Ask me anything about your studies!</p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                />
-              ))}
-              {isLoading && (
-                <div className="p-4 bg-secondary">
-                  <div className="flex gap-3">
-                    <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-secondary-foreground text-secondary">
-                      <div className="h-5 w-5 animate-pulse">...</div>
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="text-sm font-medium">AI Assistant</div>
-                      <div className="text-sm text-foreground">
-                        <div className="h-4 w-24 bg-muted rounded animate-pulse"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </ScrollArea>
-
+        <ChatContainer />
         <ChatInput />
       </motion.div>
     </AnimatePresence>

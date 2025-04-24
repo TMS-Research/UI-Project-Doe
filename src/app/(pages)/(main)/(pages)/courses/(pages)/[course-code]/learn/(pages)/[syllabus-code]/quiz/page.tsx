@@ -36,13 +36,47 @@ interface QuizState {
   selectedAnswer: number | null;
 }
 
+// Dummy quiz questions based on syllabus content
+const quizQuestions: QuizQuestion[] = [
+  {
+    id: "q1",
+    question: "What is the main topic of this syllabus?",
+    options: [
+      "Introduction to Computer Science",
+      "Advanced Programming Techniques",
+      "Data Structures and Algorithms",
+      "Web Development Fundamentals",
+    ],
+    correctAnswer: 0,
+    explanation: "This syllabus covers the fundamentals of Computer Science as an introduction to the subject.",
+    hint: "Look at the subtitle of the syllabus section for a clue.",
+  },
+  {
+    id: "q2",
+    question:
+      "Which of the following fundamental computer science principles is NOT covered in this introductory syllabus section on basic principles and concepts?",
+    options: ["Basic Programming Concepts", "Data Structures", "Machine Learning", "Problem Solving Techniques"],
+    correctAnswer: 2,
+    explanation: "Machine Learning is not covered in this introductory syllabus.",
+    hint: "This is an advanced topic that would typically be covered in later courses.",
+  },
+  {
+    id: "q3",
+    question: "How long is this syllabus section expected to take?",
+    options: ["15 minutes", "30 minutes", "1 hour", "2 hours"],
+    correctAnswer: 0,
+    explanation: "This syllabus section is designed to take approximately 15 minutes to complete.",
+    hint: "Check the duration information in the syllabus header.",
+  },
+];
+
 export default function QuizPage() {
   const params = useParams();
   const syllabusCode = params["syllabus-code"] as string;
   const courseCode = params["course-code"] as string;
 
-  const { setActiveSection } = useSectionsStore();
-  const { setActiveCourse } = useCoursesStore();
+  const { activeSection } = useSectionsStore();
+  const { activeCourse } = useCoursesStore();
 
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestionIndex: 0,
@@ -58,50 +92,11 @@ export default function QuizPage() {
   const { data: content } = useQuery<SyllabusContent>({
     queryKey: ["content", courseCode, syllabusCode],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/courses/${courseCode}/sections/${syllabusCode}`);
+      const response = await axiosInstance.get(`/courses/${activeCourse?.id}/sections/${activeSection?.id}`);
       return response.data;
     },
     enabled: !!courseCode && !!syllabusCode,
   });
-
-  // Dummy quiz questions based on syllabus content
-  const quizQuestions: QuizQuestion[] = [
-    {
-      id: "q1",
-      question: "What is the main topic of this syllabus?",
-      options: [
-        "Introduction to Computer Science",
-        "Advanced Programming Techniques",
-        "Data Structures and Algorithms",
-        "Web Development Fundamentals",
-      ],
-      correctAnswer: 0,
-      explanation: "This syllabus covers the fundamentals of Computer Science as an introduction to the subject.",
-      hint: "Look at the subtitle of the syllabus section for a clue.",
-    },
-    {
-      id: "q2",
-      question:
-        "Which of the following fundamental computer science principles is NOT covered in this introductory syllabus section on basic principles and concepts?",
-      options: ["Basic Programming Concepts", "Data Structures", "Machine Learning", "Problem Solving Techniques"],
-      correctAnswer: 2,
-      explanation: "Machine Learning is not covered in this introductory syllabus.",
-      hint: "This is an advanced topic that would typically be covered in later courses.",
-    },
-    {
-      id: "q3",
-      question: "How long is this syllabus section expected to take?",
-      options: ["15 minutes", "30 minutes", "1 hour", "2 hours"],
-      correctAnswer: 0,
-      explanation: "This syllabus section is designed to take approximately 15 minutes to complete.",
-      hint: "Check the duration information in the syllabus header.",
-    },
-  ];
-
-  useEffect(() => {
-    setActiveSection(syllabusCode);
-    setActiveCourse(courseCode);
-  }, [syllabusCode, setActiveSection, setActiveCourse, courseCode]);
 
   // Timer effect
   useEffect(() => {
@@ -125,7 +120,7 @@ export default function QuizPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [quizState.currentQuestionIndex, quizState.isSubmitted, quizState.answers, quizQuestions]);
+  }, [quizState.currentQuestionIndex, quizState.isSubmitted, quizState.answers]);
 
   // Reset timer when moving to next question
   useEffect(() => {

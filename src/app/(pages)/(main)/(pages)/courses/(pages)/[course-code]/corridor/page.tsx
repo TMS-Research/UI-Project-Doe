@@ -1,20 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import axiosInstance from "@/app/api/axios";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { queryClient } from "@/lib/react-query";
-import { useCoursesStore } from "@/stores/courses-store";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { BookOpen, Clock, Facebook, Linkedin, MessageCircle, Share2, Twitter, Users } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { toast } from "sonner";
-import { Course, CourseSection, CourseTopic } from "@/types/api/course.dto";
-import EnrollmentFlowDialog from "./components/enrollment-flow-dialog";
 import {
   Dialog,
   DialogContent,
@@ -23,15 +13,35 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { queryClient } from "@/lib/react-query";
+import { useCoursesStore } from "@/stores/courses-store";
+import useTopicsStore from "@/stores/topics-store";
+import { useSectionsStore } from "@/stores/sections-store";
+import { Course, CourseSection, CourseTopic } from "@/types/api/course.dto";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { BookOpen, Clock, Facebook, Linkedin, MessageCircle, Share2, Twitter, Users } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import EnrollmentFlowDialog from "./components/enrollment-flow-dialog";
+import useLayoutStore from "@/stores/layout-store";
 
 export default function CorridorPage() {
-  const { "course-code": courseCode } = useParams();
   const { activeCourse } = useCoursesStore();
+  const { setTopics } = useTopicsStore();
+  const { setActiveSection } = useSectionsStore();
+  const { setIsSidebarCollapsed } = useLayoutStore();
+
+  const router = useRouter();
+
   const [showEnrollmentFlow, setShowEnrollmentFlow] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { data: course } = useQuery<Course>({
-    queryKey: ["course", courseCode],
+    queryKey: ["course", activeCourse?.id],
     queryFn: async () => {
       const response = await axiosInstance.get(`/courses/${activeCourse?.id}`);
       return response.data;
@@ -40,27 +50,29 @@ export default function CorridorPage() {
   });
 
   useEffect(() => {
-    setShowEnrollmentFlow(true);
-  }, [course]);
+    if (course?.topics) {
+      setTopics(course.topics);
+    }
+  }, [course, setTopics]);
 
   const corridorSections = [
     {
       title: "Course Syllabus",
       description: "View the complete course structure and learning path",
       icon: <BookOpen className="w-6 h-6" />,
-      href: `/courses/${courseCode}/learn/syllabus`,
+      href: `/courses/${activeCourse?.code}/learn/syllabus`,
     },
     {
       title: "Discussion Forum",
       description: "Engage with your peers and instructors",
       icon: <MessageCircle className="w-6 h-6" />,
-      href: `/courses/${courseCode}/discussion`,
+      href: `/courses/${activeCourse?.code}/discussion`,
     },
     {
       title: "Study Groups",
       description: "Join or create study groups",
       icon: <Users className="w-6 h-6" />,
-      href: `/courses/${courseCode}/groups`,
+      href: `/courses/${activeCourse?.code}/groups`,
       stats: "8 active groups",
     },
   ];
@@ -70,9 +82,9 @@ export default function CorridorPage() {
       const response = await axiosInstance.post(`/courses/${activeCourse?.id}/enroll`);
       return response.data;
     },
-    mutationKey: ["enrollCourse", courseCode],
+    mutationKey: ["enrollCourse", activeCourse?.code],
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["course", courseCode] });
+      queryClient.invalidateQueries({ queryKey: ["course", activeCourse?.code] });
       toast.success("Course enrolled successfully");
       setShowConfirmDialog(false);
       setShowEnrollmentFlow(true);
@@ -83,14 +95,23 @@ export default function CorridorPage() {
     },
   });
 
+  const handleContinueToCourse = () => {
+    setIsLoading(true);
+    setActiveSection(course?.topics?.[0]?.sections?.[0] ?? null);
+    setIsSidebarCollapsed(false);
+    router.push(`/courses/${activeCourse?.code}/learn/${course?.topics?.[0]?.sections?.[0]?.slug ?? "1.1"}`);
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mt-14 relative">
+      {isLoading && <LoadingOverlay isOpen={isLoading} />}
+
       {/* Enrollment Flow Dialog */}
       <EnrollmentFlowDialog
         isOpen={showEnrollmentFlow}
         onClose={() => setShowEnrollmentFlow(false)}
-        courseCode={courseCode as string}
-        syllabusCode={course?.topics?.[0]?.sections?.[0]?.id ?? "1.1"}
+        courseCode={activeCourse?.code as string}
+        syllabusCode={course?.topics?.[0]?.sections?.[0]?.slug ?? "1.1"}
       />
 
       {/* Confirmation Dialog */}
@@ -147,7 +168,7 @@ export default function CorridorPage() {
               <CardTitle>Course Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">{course?.description}</p>
+              <p className="text-muted-foreground">{course?.description}</p>
             </CardContent>
           </Card>
 
@@ -227,12 +248,10 @@ export default function CorridorPage() {
             <CardContent>
               {course?.is_enrolled ? (
                 <Button
-                  asChild
                   className="w-full"
+                  onClick={handleContinueToCourse}
                 >
-                  <Link href={`/courses/${courseCode}/learn/${course?.topics?.[0]?.sections?.[0]?.id ?? "1.1"}`}>
-                    Continue to Course
-                  </Link>
+                  Continue to Course
                 </Button>
               ) : (
                 <Button

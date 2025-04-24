@@ -646,9 +646,9 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{course.description}</p>
                 <Button
                   className="w-full"
-                  onClick={() => router.push(`/courses/${course.id}`)}
+                  onClick={() => setActiveCourse(course.id)}
                 >
-                  View Course
+                  <Link href={`/courses/${course.code}/corridor`}>View Course</Link>
                 </Button>
               </CardContent>
             </Card>

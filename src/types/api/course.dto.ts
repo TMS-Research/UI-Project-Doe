@@ -2,6 +2,7 @@ export interface CourseSection {
   id: string;
   title: string;
   order: number;
+  slug: string;
 }
 
 export interface CourseTopic {
