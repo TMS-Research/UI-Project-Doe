@@ -136,7 +136,8 @@ const CodeComponent = ({ className, children, inline, ...props }: CodeProps) => 
       </div>
       <SyntaxHighlighter
         language={lang || "javascript"}
-        style={nightOwl as { [key: string]: React.CSSProperties }}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        style={nightOwl as any}
         customStyle={{
           margin: 0,
           borderTopLeftRadius: 0,
