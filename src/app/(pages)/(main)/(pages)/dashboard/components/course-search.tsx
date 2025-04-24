@@ -41,17 +41,16 @@ export function CourseSearch() {
 
   // Initialize from URL params only once on mount
   useEffect(() => {
-    const keyword = searchParams.get("keyword");
+    const search = searchParams.get("search");
     const subject = searchParams.get("subject");
 
-    if (keyword) {
-      setSearchQuery(keyword);
-      setInputValue(keyword);
+    if (search) {
+      setSearchQuery(search);
     }
     if (subject) {
       setSelectedSubject(subject);
     }
-  }, []); // Empty dependency array - only run once on mount
+  }, [searchParams, setSearchQuery, setSelectedSubject]);
 
   // Update URL when debounced search changes
   useEffect(() => {

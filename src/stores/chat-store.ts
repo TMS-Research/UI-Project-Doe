@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
-export type MessageRole = "user" | "assistant";
-
-export interface Message {
+interface Message {
   id: string;
-  role: MessageRole;
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  isTyping?: boolean;
+  studentResources?: string[];
 }
 
 interface ChatState {
@@ -15,6 +15,8 @@ interface ChatState {
   addMessage: (message: Omit<Message, "id" | "timestamp">) => void;
   setLoading: (isLoading: boolean) => void;
   clearMessages: () => void;
+  updateLastMessage: (content: string, keepTyping?: boolean) => void;
+  setTypingComplete: () => void;
 }
 
 // Create the store
@@ -34,6 +36,18 @@ const useChatStore = create<ChatState>((set) => ({
     })),
   setLoading: (isLoading) => set({ isLoading }),
   clearMessages: () => set({ messages: [] }),
+  updateLastMessage: (content, keepTyping = false) =>
+    set((state) => ({
+      messages: state.messages.map((msg, idx) =>
+        idx === state.messages.length - 1 ? { ...msg, content, isTyping: keepTyping ? true : false } : msg,
+      ),
+    })),
+  setTypingComplete: () =>
+    set((state) => ({
+      messages: state.messages.map((msg, idx) =>
+        idx === state.messages.length - 1 ? { ...msg, isTyping: false } : msg,
+      ),
+    })),
 }));
 
 export default useChatStore;

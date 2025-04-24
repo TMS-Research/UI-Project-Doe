@@ -86,10 +86,35 @@ const config: Config = {
             height: "0",
           },
         },
+        loading: {
+          "0%": {
+            opacity: ".2",
+          },
+          "20%": {
+            opacity: "1",
+          },
+          "100%": {
+            opacity: ".2",
+          },
+        },
+        typing: {
+          "0%": { width: "0" },
+          "100%": { width: "100%" },
+        },
+        blink: {
+          "50%": { borderColor: "transparent" },
+        },
+        "typing-pulse": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        typing: "typing 1.5s steps(40, end)",
+        blink: "blink 1s step-end infinite",
+        "typing-pulse": "typing-pulse 1.5s ease-in-out infinite",
       },
       backgroundImage: {
         "muted-gradient": "linear-gradient(to bottom right, hsl(var(--muted-100)), hsl(var(--muted-300)))",

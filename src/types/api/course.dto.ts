@@ -2,6 +2,8 @@ export interface CourseSection {
   id: string;
   title: string;
   order: number;
+  slug: string;
+  description: string;
 }
 
 export interface CourseTopic {

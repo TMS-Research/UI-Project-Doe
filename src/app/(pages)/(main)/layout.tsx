@@ -1,7 +1,8 @@
+import { Metadata } from "next";
+import AIAssistant from "./components/ai-assistant";
+import Main from "./components/main";
 import Sidebar from "./components/sidebar";
 import Topbar from "./components/topbar";
-import AIAssistant from "./components/ai-assistant";
-import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Project Doe",
@@ -10,11 +11,11 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-secondary min-h-screen">
+    <div className="bg-muted-300 min-h-screen">
       <Topbar />
-      <div className="flex w-full">
+      <div className="flex w-full gap-4">
         <Sidebar />
-        <main className="w-full pt-[62px] overflow-auto p-4 bg-muted-300 min-h-screen">{children}</main>
+        <Main>{children}</Main>
         <AIAssistant />
       </div>
     </div>

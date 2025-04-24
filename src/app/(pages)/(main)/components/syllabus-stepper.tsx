@@ -5,16 +5,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useCoursesStore } from "@/stores/courses-store";
-import { Course } from "@/types/api/course.dto";
+import { useSectionsStore } from "@/stores/sections-store";
+import type { Course } from "@/types/api/course.dto";
 import { useQuery } from "@tanstack/react-query";
-import { Check, CheckCircle2, Circle, CircleDot } from "lucide-react";
-import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { CheckCircle2, Circle, CircleDot } from "lucide-react";
+import { useParams } from "next/navigation";
 
 export default function SyllabusStepper() {
   const { "course-code": courseCode } = useParams();
-  const pathname = usePathname();
   const { activeCourse } = useCoursesStore();
+  const { activeSection, setActiveSection } = useSectionsStore();
 
   // Fetch course data including topics and sections
   const { data: course } = useQuery<Course>({
@@ -26,26 +26,65 @@ export default function SyllabusStepper() {
     enabled: !!activeCourse,
   });
 
-  // Find the current topic and section based on the pathname
+  // Fetch section completion status
+  const { data: sectionCompletions } = useQuery<Record<string, boolean>>({
+    queryKey: ["section-completions", activeCourse?.id],
+    queryFn: async () => {
+      if (!course?.topics) return {};
+
+      const completions: Record<string, boolean> = {};
+      for (const topic of course.topics) {
+        for (const section of topic.sections) {
+          const response = await axiosInstance.get(`/courses/${activeCourse?.id}/sections/${section.id}`);
+          completions[section.id] = response.data.completed;
+        }
+      }
+      return completions;
+    },
+    enabled: !!activeCourse && !!course?.topics,
+  });
+
+  // Helper function to check if a section is completed
+  const isSectionCompleted = (sectionId: string): boolean => {
+    return sectionCompletions?.[sectionId] || false;
+  };
+
+  // Find the current topic and section based on the active section
   const getCurrentProgress = () => {
     let currentTopicIndex = -1;
-    let currentSectionIndex = -1;
 
-    if (!course?.topics) return { currentTopicIndex, currentSectionIndex };
+    if (!course?.topics) return { currentTopicIndex };
 
+    // If no active section, try to find the first incomplete section
+    if (!activeSection) {
+      for (let topicIndex = 0; topicIndex < course.topics.length; topicIndex++) {
+        const topic = course.topics[topicIndex];
+        for (let sectionIndex = 0; sectionIndex < topic.sections.length; sectionIndex++) {
+          const section = topic.sections[sectionIndex];
+          // Set as current if this is the first section or if previous section is completed
+          if (topicIndex === 0 && sectionIndex === 0) {
+            currentTopicIndex = topicIndex;
+            setActiveSection(section);
+            return { currentTopicIndex };
+          }
+        }
+      }
+      return { currentTopicIndex };
+    }
+
+    // Find the current section in the course structure
     course.topics.forEach((topic, topicIndex) => {
-      topic.sections.forEach((section, sectionIndex) => {
-        if (section.id === pathname.split("/").pop()) {
+      topic.sections.forEach((section) => {
+        if (section.id === activeSection.id) {
           currentTopicIndex = topicIndex;
-          currentSectionIndex = sectionIndex;
         }
       });
     });
 
-    return { currentTopicIndex, currentSectionIndex };
+    return { currentTopicIndex };
   };
 
-  const { currentTopicIndex, currentSectionIndex } = getCurrentProgress();
+  const { currentTopicIndex } = getCurrentProgress();
 
   if (!course?.topics) {
     return (
@@ -59,81 +98,71 @@ export default function SyllabusStepper() {
   }
 
   return (
-    <ScrollArea className="flex flex-col h-full w-[20rem] max-w-3xl mx-auto p-6">
+    <ScrollArea className="flex flex-col h-full w-[20rem] mx-auto p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-foreground">Course Progress</h2>
         <p className="text-sm text-muted-foreground">Track your learning journey</p>
       </div>
 
       <Accordion type="multiple">
-        {course.topics.map((topic, topicIndex) => (
-          <AccordionItem
-            key={topic.id}
-            value={topic.id}
-            className="relative border-none"
-          >
-            <AccordionTrigger className="hover:no-underline">
-              <div className="flex items-center">
-                <div
-                  className={cn(
-                    "flex items-center justify-center size-6 rounded-full mr-3",
-                    topicIndex < currentTopicIndex
-                      ? "bg-primary text-primary-foreground"
-                      : topicIndex === currentTopicIndex
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {topicIndex < currentTopicIndex ? <Check className="size-4" /> : <span>{topicIndex + 1}</span>}
-                </div>
-                <h3
-                  className={cn(
-                    "font-medium text-left",
-                    topicIndex <= currentTopicIndex ? "text-foreground" : "text-muted-foreground",
-                  )}
-                >
-                  {topic.title}
-                </h3>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-3">
-                {topic.sections.map((section, sectionIndex) => {
-                  const isCompleted =
-                    topicIndex < currentTopicIndex ||
-                    (topicIndex === currentTopicIndex && sectionIndex < currentSectionIndex);
-                  const isCurrent = topicIndex === currentTopicIndex && sectionIndex === currentSectionIndex;
+        {course.topics.map((topic, topicIndex) => {
+          const isCurrentTopic = topicIndex === currentTopicIndex;
 
-                  return (
-                    <Link
-                      key={section.id}
-                      href={`/courses/${activeCourse}/learn/${section.id}`}
-                      className={cn(
-                        "flex items-center py-2 px-3 rounded-md transition-colors",
-                        isCurrent
-                          ? "bg-primary/10 text-primary"
-                          : isCompleted
-                          ? "text-foreground hover:bg-muted"
-                          : "text-muted-foreground hover:bg-muted/50",
-                      )}
-                    >
-                      <div className="mr-3">
-                        {isCompleted ? (
-                          <CheckCircle2 className="size-5 text-primary" />
-                        ) : isCurrent ? (
-                          <CircleDot className="size-5 text-primary" />
-                        ) : (
-                          <Circle className="size-5 text-muted-foreground" />
-                        )}
+          return (
+            <AccordionItem
+              key={topic.id}
+              value={topic.id}
+              className="relative border-none"
+            >
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center">
+                  <div
+                    className={cn(
+                      "flex items-center justify-center size-6 rounded-full mr-3",
+                      isCurrentTopic ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    <span>{topicIndex + 1}</span>
+                  </div>
+                  <h3
+                    className={cn(
+                      "font-medium text-left",
+                      isCurrentTopic ? "text-foreground" : "text-muted-foreground",
+                    )}
+                  >
+                    {topic.title}
+                  </h3>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3">
+                  {topic.sections.map((section) => {
+                    const isCompleted = isSectionCompleted(section.id);
+                    const isCurrent = section.id === activeSection?.id;
+
+                    return (
+                      <div
+                        key={section.id}
+                        className="flex items-center p-2"
+                      >
+                        <div className="mr-3">
+                          {isCompleted ? (
+                            <CheckCircle2 className="size-5 text-primary" />
+                          ) : isCurrent ? (
+                            <CircleDot className="size-5 text-primary" />
+                          ) : (
+                            <Circle className="size-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <span className={cn("text-sm", isCurrent ? "font-medium" : "")}>{section.title}</span>
                       </div>
-                      <span className={cn("text-sm", isCurrent ? "font-medium" : "")}>{section.title}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
+                    );
+                  })}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          );
+        })}
       </Accordion>
     </ScrollArea>
   );

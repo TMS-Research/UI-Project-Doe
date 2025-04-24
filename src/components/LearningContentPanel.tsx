@@ -1,30 +1,23 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import {
-  MessageCircle,
-  BookOpen,
-  Brain,
-  CheckCircle,
-  Save,
-  ChevronRight,
-  ChevronLeft,
-  History,
-  Play,
-  Home,
-} from "lucide-react";
-import useChatStore from "@/stores/chat-store";
-import { useMutation } from "@tanstack/react-query";
 import axiosInstance from "@/app/api/axios";
-import { useSectionsStore } from "@/stores/sections-store";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import useChatStore from "@/stores/chat-store";
 import { useCoursesStore } from "@/stores/courses-store";
-import Markdown from "react-markdown";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import usePracticeStore from "@/stores/practice-store";
+import { useSectionsStore } from "@/stores/sections-store";
+import useTopicsStore from "@/stores/topics-store";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { BookOpen, Brain, Check, CheckCircle, Copy, MessageCircle, Play } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import Markdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { nightOwl } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { toast } from "sonner";
+import PracticeHistory from "./PracticeHistory";
 
 export interface LearningContent {
   conceptExplanation: string;
@@ -50,138 +43,24 @@ export interface LearningContent {
   };
 }
 
-interface LearningContentPanelProps {
-  content: LearningContent;
-  onSaveQuestion?: (questionId: string) => void;
-}
-
-const exampleContent: LearningContent = {
-  conceptExplanation: `# Data Structures: Fundamental Concepts
-
-## Introduction
-Data structures are specialized formats for organizing, processing, retrieving, and storing data. They are essential for creating efficient algorithms and writing high-performance software.
-
-## Basic Data Structures
-
-### 1. Arrays
-Arrays are collections of elements stored at contiguous memory locations. They are the simplest data structure and are often used to implement other data structures.
-
-**Key Characteristics:**
-- Fixed size (in most programming languages)
-- Constant-time access to elements
-- Contiguous memory allocation
-
-### 2. Linked Lists
-Linked lists consist of nodes where each node contains a data field and a reference to the next node in the sequence.
-
-**Types of Linked Lists:**
-- Singly Linked List
-- Doubly Linked List
-- Circular Linked List
-
-### 3. Stacks
-A stack is a linear data structure that follows the Last In First Out (LIFO) principle.
-
-**Operations:**
-- Push: Add an element
-- Pop: Remove the top element
-- Peek: View the top element
-
-### 4. Queues
-A queue is a linear data structure that follows the First In First Out (FIFO) principle.
-
-**Operations:**
-- Enqueue: Add an element
-- Dequeue: Remove an element
-- Front: View the first element
-
-## Advanced Data Structures
-
-### 1. Trees
-Trees are hierarchical data structures consisting of nodes connected by edges.
-
-**Common Types:**
-- Binary Trees
-- Binary Search Trees
-- AVL Trees
-- Red-Black Trees
-
-### 2. Graphs
-Graphs are non-linear data structures consisting of vertices (nodes) and edges.
-
-**Types:**
-- Directed Graphs
-- Undirected Graphs
-- Weighted Graphs
-
-### 3. Hash Tables
-Hash tables implement an associative array abstract data type, a structure that can map keys to values.
-
-**Key Features:**
-- Constant-time average case operations
-- Collision handling
-- Hash functions
-`,
-  problems: [
-    {
-      id: "ds-1",
-      question: "Implement a function to reverse a linked list",
-      steps: [
-        "Initialize three pointers: prev = null, current = head, next = null",
-        "Traverse the list while current is not null",
-        "Store the next node: next = current.next",
-        "Reverse the link: current.next = prev",
-        "Move pointers: prev = current, current = next",
-        "Return prev as the new head",
-      ],
-      hints: [
-        "Think about how to change the direction of links",
-        "Remember to handle the head node specially",
-        "Consider edge cases like empty list or single node",
-      ],
-      solution: "The reversed linked list will have all pointers pointing in the opposite direction",
-      relatedTopics: ["Linked Lists", "Pointers", "Iteration"],
-    },
-  ],
-  practiceSets: [
-    {
-      id: "ds-p1",
-      type: "mcq",
-      question: "What is the time complexity of searching in a binary search tree?",
-      options: ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
-      answer: "O(log n)",
-    },
-    {
-      id: "ds-p2",
-      type: "short-answer",
-      question: "Explain the difference between a stack and a queue data structure.",
-    },
-  ],
-  summary: {
-    keyTakeaways: [
-      "Data structures are fundamental to efficient algorithm design",
-      "Different data structures have different strengths and use cases",
-      "Understanding time complexity helps in choosing the right data structure",
-      "Basic data structures can be combined to create more complex ones",
-    ],
-    observations: [
-      "Array operations are generally faster for random access",
-      "Linked lists are better for frequent insertions and deletions",
-      "Trees are ideal for hierarchical data representation",
-      "Hash tables provide the fastest average-case operations",
-    ],
-  },
-};
-
-export function LearningContentPanel({ content, onSaveQuestion }: LearningContentPanelProps) {
+export function LearningContentPanel() {
   const [selectedSection, setSelectedSection] = useState<string>("concept");
-  const [expandedProblems, setExpandedProblems] = useState<string[]>([]);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; text: string } | null>(null);
-  const [activeHintIndex, setActiveHintIndex] = useState<number>(0);
   const contentRef = useRef<HTMLDivElement>(null);
-  const { addMessage, setLoading } = useChatStore();
+  const { addMessage, setLoading, updateLastMessage } = useChatStore();
   const { activeCourse } = useCoursesStore();
-  const { activeSection } = useSectionsStore();
+  const { activeSection, setActiveSection } = useSectionsStore();
+  const { topics } = useTopicsStore();
+  const { setPracticeSessionId } = usePracticeStore();
+
+  const { data: courseContent } = useQuery({
+    queryKey: ["content", activeCourse, activeSection],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/courses/${activeCourse?.id}/sections/${activeSection?.id}`);
+      return response.data;
+    },
+    enabled: !!activeCourse?.id && !!activeSection?.id,
+  });
 
   const { mutate: sendMessage } = useMutation({
     mutationFn: async (message: string) => {
@@ -189,6 +68,13 @@ export function LearningContentPanel({ content, onSaveQuestion }: LearningConten
       addMessage({
         role: "user",
         content: message,
+      });
+
+      // Add a temporary loading message for the assistant
+      addMessage({
+        role: "assistant",
+        content: "Thinking...",
+        isTyping: true,
       });
 
       const response = await axiosInstance.post("/chat", {
@@ -204,10 +90,8 @@ export function LearningContentPanel({ content, onSaveQuestion }: LearningConten
     },
     mutationKey: ["sendMessage"],
     onSuccess: (data) => {
-      addMessage({
-        role: "assistant",
-        content: data.message_content,
-      });
+      // Update the message content but keep isTyping true to show the typing animation
+      updateLastMessage(data.message_content, true);
       setLoading(false);
     },
   });
@@ -256,6 +140,39 @@ export function LearningContentPanel({ content, onSaveQuestion }: LearningConten
     return () => document.removeEventListener("selectionchange", handleSelectionChange);
   }, []);
 
+  const { mutate: startPractice } = useMutation({
+    mutationFn: async () => {
+      const response = await axiosInstance.post(
+        `/practice/session/start`,
+        {},
+        {
+          params: {
+            section_id: activeSection?.id,
+          },
+        },
+      );
+      return response.data;
+    },
+    mutationKey: ["startPractice"],
+    onSuccess: (data) => {
+      console.log(data);
+      setPracticeSessionId(data.session_id);
+    },
+  });
+
+  const handleStartLearning = async () => {
+    try {
+      await startPractice();
+      // The navigation will be handled by the Link component
+    } catch (error) {
+      console.error("Failed to start practice session:", error);
+    }
+  };
+
+  useEffect(() => {
+    console.log(topics);
+  }, [topics]);
+
   return (
     <div
       className="h-full flex flex-col"
@@ -273,25 +190,11 @@ export function LearningContentPanel({ content, onSaveQuestion }: LearningConten
           Concepts
         </Button>
         <Button
-          variant={selectedSection === "problems" ? "default" : "ghost"}
-          onClick={() => setSelectedSection("problems")}
-        >
-          <Brain className="w-4 h-4 mr-2" />
-          Problems
-        </Button>
-        <Button
           variant={selectedSection === "practice" ? "default" : "ghost"}
           onClick={() => setSelectedSection("practice")}
         >
           <CheckCircle className="w-4 h-4 mr-2" />
           Practice
-        </Button>
-        <Button
-          variant={selectedSection === "summary" ? "default" : "ghost"}
-          onClick={() => setSelectedSection("summary")}
-        >
-          <MessageCircle className="w-4 h-4 mr-2" />
-          Summary
         </Button>
       </div>
 
@@ -301,13 +204,28 @@ export function LearningContentPanel({ content, onSaveQuestion }: LearningConten
           <div className="space-y-6">
             {/* Concept Explanation Section */}
             <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4">Concept Explanation</h3>
-              <div className="prose prose-sm max-w-none dark:prose-invert">
+              <div className="prose prose-sm max-w-none dark:prose-invert space-y-4">
                 <Markdown
                   components={{
-                    h1: ({ children }) => <h1 className="text-3xl font-bold mb-6 text-primary">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-2xl font-bold mb-4 text-primary">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-xl font-medium mb-3 text-primary">{children}</h3>,
+                    h1: ({ children }) => <h1 className="text-3xl font-bold mb-6 text-foreground">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-2xl font-bold mb-4 text-foreground">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-xl font-medium mb-3 text-foreground">{children}</h3>,
+                    p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
+                    li: ({ children }) => <li className="text-foreground">{children}</li>,
+                    strong: ({ children }) => <strong className="font-bold text-foreground">{children}</strong>,
+                    code: ({ children }) => {
+                      return <CodeComponent>{children}</CodeComponent>;
+                    },
+                  }}
+                >
+                  {courseContent?.concepts}
+                </Markdown>
+                <Markdown
+                  components={{
+                    h1: ({ children }) => <h1 className="text-3xl font-bold mb-6 text-foreground">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-2xl font-bold mb-4 text-foreground">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-xl font-medium mb-3 text-foreground">{children}</h3>,
                     p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
                     ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
                     li: ({ children }) => <li className="text-foreground">{children}</li>,
@@ -319,111 +237,38 @@ export function LearningContentPanel({ content, onSaveQuestion }: LearningConten
                     ),
                     th: ({ children }) => <th className="border border-border bg-muted p-2 text-left">{children}</th>,
                     td: ({ children }) => <td className="border border-border p-2">{children}</td>,
+                    code: ({ children }) => {
+                      return <CodeComponent>{children}</CodeComponent>;
+                    },
                   }}
                 >
-                  {exampleContent.conceptExplanation}
+                  {courseContent?.problems}
+                </Markdown>
+                <Markdown
+                  components={{
+                    h1: ({ children }) => <h1 className="text-3xl font-bold mb-6 text-foreground">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-2xl font-bold mb-4 text-foreground">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-xl font-medium mb-3 text-foreground">{children}</h3>,
+                    p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
+                    li: ({ children }) => <li className="text-foreground">{children}</li>,
+                    strong: ({ children }) => <strong className="font-bold text-foreground">{children}</strong>,
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto mb-4">
+                        <table className="min-w-full border-collapse border border-border">{children}</table>
+                      </div>
+                    ),
+                    th: ({ children }) => <th className="border border-border bg-muted p-2 text-left">{children}</th>,
+                    td: ({ children }) => <td className="border border-border p-2">{children}</td>,
+                    code: ({ children }) => {
+                      return <CodeComponent>{children}</CodeComponent>;
+                    },
+                  }}
+                >
+                  {courseContent?.summary}
                 </Markdown>
               </div>
             </div>
-          </div>
-        )}
-
-        {selectedSection === "problems" && (
-          <div className="space-y-6">
-            {content.problems.map((problem) => (
-              <Card key={problem.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle>Problem {problem.id}</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onSaveQuestion?.(problem.id)}
-                    >
-                      <Save className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <p className="font-medium">{problem.question}</p>
-
-                    <Accordion
-                      type="single"
-                      collapsible
-                      value={expandedProblems.includes(problem.id) ? problem.id : undefined}
-                      onValueChange={(value) => {
-                        setExpandedProblems(
-                          value ? [...expandedProblems, value] : expandedProblems.filter((id) => id !== value),
-                        );
-                      }}
-                    >
-                      <AccordionItem value={problem.id}>
-                        <AccordionTrigger className="text-primary">Solution Steps</AccordionTrigger>
-                        <AccordionContent>
-                          <ol className="list-decimal pl-6 space-y-2">
-                            {problem.steps.map((step, index) => (
-                              <li key={index}>{step}</li>
-                            ))}
-                          </ol>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-
-                    <div className="mt-4">
-                      <h4 className="font-medium mb-2">Hints</h4>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                          >
-                            <Brain className="w-4 h-4 mr-2" />
-                            View Hints
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 bg-primary text-primary-foreground">
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                              <h4 className="font-medium">
-                                Hint {activeHintIndex + 1} of {problem.hints.length}
-                              </h4>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setActiveHintIndex((prev) => Math.max(0, prev - 1))}
-                                  disabled={activeHintIndex === 0}
-                                  className="text-primary-foreground hover:bg-primary-foreground/10"
-                                >
-                                  <ChevronLeft className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    if (activeHintIndex === problem.hints.length - 1) {
-                                      setActiveHintIndex(0);
-                                    } else {
-                                      setActiveHintIndex((prev) => Math.min(problem.hints.length - 1, prev + 1));
-                                    }
-                                  }}
-                                  className="text-primary-foreground hover:bg-primary-foreground/10"
-                                >
-                                  <ChevronRight className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                            <p className="text-sm text-primary-foreground/90">{problem.hints[activeHintIndex]}</p>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         )}
 
@@ -444,164 +289,49 @@ export function LearningContentPanel({ content, onSaveQuestion }: LearningConten
                     <Button
                       size="lg"
                       className="w-full sm:w-auto"
-                      onClick={() => {
-                        const courseCode = activeCourse;
-                        const syllabusCode = activeSection;
-                        window.location.href = `/courses/${courseCode}/learn/${syllabusCode}/practice`;
-                      }}
+                      asChild
+                      onClick={handleStartLearning}
                     >
-                      <Play className="w-4 h-4 mr-2" />
-                      Start Practice
+                      <Link href={`/courses/${activeCourse?.code}/learn/${activeSection?.slug}/practice`}>
+                        <Play className="w-4 h-4 mr-2" />
+                        Start Practice
+                      </Link>
                     </Button>
                   </div>
 
                   {/* Practice History */}
-                  <div>
-                    <h4 className="font-medium mb-4 flex items-center gap-2">
-                      <History className="w-4 h-4" />
-                      Practice History
-                    </h4>
-                    <div className="space-y-4">
-                      {[
-                        {
-                          date: "2024-04-15",
-                          score: 85,
-                          completed: true,
-                          timeSpent: "15 minutes",
-                        },
-                        {
-                          date: "2024-04-14",
-                          score: 70,
-                          completed: true,
-                          timeSpent: "12 minutes",
-                        },
-                        {
-                          date: "2024-04-13",
-                          score: 65,
-                          completed: true,
-                          timeSpent: "10 minutes",
-                        },
-                      ].map((history, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-4 border rounded-lg"
-                        >
-                          <div>
-                            <div className="font-medium">Practice Session {index + 1}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {new Date(history.date).toLocaleDateString()}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <div className="font-medium">{history.score}%</div>
-                              <div className="text-sm text-muted-foreground">{history.timeSpent}</div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                const courseCode = activeCourse;
-                                const syllabusCode = activeSection;
-                                window.location.href = `/courses/${courseCode}/learn/${syllabusCode}/practice?session=${
-                                  index + 1
-                                }`;
-                              }}
-                            >
-                              Review
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <PracticeHistory />
                 </div>
               </CardContent>
             </Card>
           </div>
         )}
-
-        {selectedSection === "summary" && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Key Takeaways</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc pl-6 space-y-2">
-                  {content.summary.keyTakeaways.map((takeaway, index) => (
-                    <li
-                      key={index}
-                      className="text-muted-foreground"
-                    >
-                      {takeaway}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Observations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc pl-6 space-y-2">
-                  {content.summary.observations.map((observation, index) => (
-                    <li
-                      key={index}
-                      className="text-muted-foreground"
-                    >
-                      {observation}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <div className="flex justify-between items-center gap-4">
-              <Button
-                variant="outline"
-                asChild
-              >
-                <Link href={`/courses/${activeCourse}/learn/previous-syllabus`}>
-                  <ChevronLeft className="mr-2 h-4 w-4" />
-                  Previous
-                </Link>
-              </Button>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  asChild
-                >
-                  <Link href={`/courses/${activeCourse}/learn/${activeSection}/quiz`}>
-                    <Brain className="mr-2 h-4 w-4" />
-                    Take Quiz
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  asChild
-                >
-                  <Link href={`/courses/${activeCourse}/learn/${activeSection}`}>
-                    <Home className="mr-2 h-4 w-4" />
-                    Back to Syllabus
-                  </Link>
-                </Button>
-              </div>
-              <Button
-                variant="outline"
-                asChild
-              >
-                <Link href={`/courses/${activeCourse}/learn/next-syllabus`}>
-                  Next
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        )}
       </ScrollArea>
+
+      {/* Next Section Button */}
+      <div className="p-4 border-t flex justify-end">
+        <Button
+          size="lg"
+          className="w-full sm:w-auto"
+          asChild
+          disabled={!activeSection}
+          onClick={() => {
+            const sections = topics.flatMap((topic) => topic.sections);
+            const currentIndex = sections.findIndex((section) => section.id === activeSection?.id);
+            setActiveSection(sections[currentIndex + 1]);
+          }}
+        >
+          <Link
+            href={`/courses/${activeCourse?.code}/learn/${(() => {
+              const sections = topics.flatMap((topic) => topic.sections);
+              const currentIndex = sections.findIndex((section) => section.id === activeSection?.id);
+              return sections[currentIndex + 1]?.slug || "";
+            })()}`}
+          >
+            Next Section
+          </Link>
+        </Button>
+      </div>
 
       {/* Context Menu */}
       {contextMenu && (
@@ -635,4 +365,67 @@ export function LearningContentPanel({ content, onSaveQuestion }: LearningConten
   );
 }
 
-// Example content for Data Structures
+interface CodeProps extends React.HTMLAttributes<HTMLElement> {
+  inline?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}
+
+const CodeComponent = ({ className, children, inline, ...props }: CodeProps) => {
+  const [isCopied, setIsCopied] = useState(false);
+  const match = /language-(\w+)/.exec(className || "");
+  const lang = match ? match[1] : "";
+  const codeString = String(children).replace(/\n$/, "");
+
+  const handleCopyCode = async () => {
+    toast.success("Code copied to clipboard");
+    await navigator.clipboard.writeText(codeString);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  if (inline) {
+    return (
+      <code
+        className="bg-muted px-1.5 py-0.5 rounded-sm"
+        {...props}
+      >
+        {children}
+      </code>
+    );
+  }
+
+  return (
+    <div className="relative group border rounded-md">
+      <div className="flex items-center justify-between px-4 py-2 bg-background text-white rounded-t-md">
+        <span className="text-sm font-mono">{lang || "javascript"}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`opacity-0 group-hover:opacity-100 transition-opacity ${
+            isCopied ? "bg-green-500/20 text-green-500" : ""
+          }`}
+          onClick={handleCopyCode}
+        >
+          {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          <span className="sr-only">{isCopied ? "Copied!" : "Copy code"}</span>
+        </Button>
+      </div>
+      <SyntaxHighlighter
+        language={lang || "javascript"}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        style={nightOwl as any}
+        customStyle={{
+          margin: 0,
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+          borderBottomLeftRadius: "0.375rem",
+          borderBottomRightRadius: "0.375rem",
+        }}
+        {...props}
+      >
+        {codeString}
+      </SyntaxHighlighter>
+    </div>
+  );
+};

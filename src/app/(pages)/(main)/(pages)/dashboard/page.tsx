@@ -7,13 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useCoursesStore } from "@/stores/courses-store";
+import useLayoutStore from "@/stores/layout-store";
 import { AnalyticsData } from "@/types/api/analytics.dto";
 import { Course } from "@/types/api/course.dto";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, Crown, Flame, Heart, Search, Target, Trophy, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -242,21 +242,17 @@ const renderBadgeIcon = (iconName: string) => {
 
 export default function DashboardPage() {
   const { courses, fetchCourses, setActiveCourse } = useCoursesStore();
-  const router = useRouter();
+  const { setSidebarContent } = useLayoutStore();
 
   useEffect(() => {
     fetchCourses();
-  }, [fetchCourses]);
+    setSidebarContent("syllabus");
+  }, [fetchCourses, setSidebarContent]);
 
   // Using mock data with useQuery for easy switching to real API later
   const { data: myCourses } = useQuery<Course[]>({
     queryKey: ["myCourses"],
     queryFn: async () => {
-      // In development, return mock data
-      // if (process.env.NODE_ENV === "development") {
-      //   return Promise.resolve(mockMyCourses);
-      // }
-      // In production, use the real API
       const response = await axiosInstance.get("/courses/my");
       return response.data;
     },
@@ -646,9 +642,9 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{course.description}</p>
                 <Button
                   className="w-full"
-                  onClick={() => router.push(`/courses/${course.id}`)}
+                  onClick={() => setActiveCourse(course.id)}
                 >
-                  View Course
+                  <Link href={`/courses/${course.code}/corridor`}>View Course</Link>
                 </Button>
               </CardContent>
             </Card>
