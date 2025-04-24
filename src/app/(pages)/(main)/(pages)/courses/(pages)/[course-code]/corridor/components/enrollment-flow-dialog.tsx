@@ -22,7 +22,6 @@ interface EnrollmentFlowDialogProps {
 }
 
 type Step = "plan" | "content" | "loading";
-type LoadingState = "uploading" | "analyzing" | "creating-quiz" | null;
 
 interface CreateLearningPlanPayload {
   course_id: string;

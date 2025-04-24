@@ -7,22 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useCoursesStore } from "@/stores/courses-store";
+import useLayoutStore from "@/stores/layout-store";
 import { AnalyticsData } from "@/types/api/analytics.dto";
 import { Course } from "@/types/api/course.dto";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, Crown, Flame, Heart, Search, Target, Trophy, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { useAchievementsStore } from "@/stores/achievements-store";
-import { useMyCoursesStore } from "@/stores/my-courses-store";
-import { useRecommendedCoursesStore } from "@/stores/recommended-courses-store";
-import { useSearchStore } from "@/stores/search-store";
-import { useSubjectStore } from "@/stores/subject-store";
-import { useTabsStore } from "@/stores/tabs-store";
-import { useLayoutStore } from "@/stores/layout-store";
 
 // Define badge types and their colors
 const BADGE_TYPES = {
@@ -249,28 +242,17 @@ const renderBadgeIcon = (iconName: string) => {
 
 export default function DashboardPage() {
   const { courses, fetchCourses, setActiveCourse } = useCoursesStore();
-  const { achievements } = useAchievementsStore();
-  const { myCourses } = useMyCoursesStore();
-  const { recommendedCourses } = useRecommendedCoursesStore();
-  const { searchQuery, setSearchQuery } = useSearchStore();
-  const { selectedSubject, setSelectedSubject } = useSubjectStore();
-  const { setActiveTab } = useTabsStore();
-  const { setShowSidebar } = useLayoutStore();
+  const { setSidebarContent } = useLayoutStore();
 
   useEffect(() => {
     fetchCourses();
-    setShowSidebar(true);
-  }, [fetchCourses, setShowSidebar]);
+    setSidebarContent("syllabus");
+  }, [fetchCourses, setSidebarContent]);
 
   // Using mock data with useQuery for easy switching to real API later
   const { data: myCourses } = useQuery<Course[]>({
     queryKey: ["myCourses"],
     queryFn: async () => {
-      // In development, return mock data
-      // if (process.env.NODE_ENV === "development") {
-      //   return Promise.resolve(mockMyCourses);
-      // }
-      // In production, use the real API
       const response = await axiosInstance.get("/courses/my");
       return response.data;
     },
