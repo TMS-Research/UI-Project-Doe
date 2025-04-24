@@ -3,6 +3,7 @@ export interface CourseSection {
   title: string;
   order: number;
   slug: string;
+  description: string;
 }
 
 export interface CourseTopic {
