@@ -1,16 +1,14 @@
-import { TypingEffect } from "@/components/ui/typing-effect";
-import useChatStore from "@/stores/chat-store";
-import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import Markdown from "react-markdown";
-import { Copy } from "lucide-react";
-import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { TypingEffect } from "@/components/ui/typing-effect";
+import { cn } from "@/lib/utils";
+import { Check, Copy } from "lucide-react";
+import { useState } from "react";
+import Markdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { nightOwl } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import { toast } from "sonner";
-import { useState } from "react";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -20,8 +18,6 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage = ({ role, content, isTyping, studentResources }: ChatMessageProps) => {
-  const { setTypingComplete } = useChatStore();
-
   return (
     <div className={cn("flex w-full bg-background")}>
       <div className={cn("container flex gap-4 py-4 px-4", role === "assistant" && isTyping && "animate-typing-pulse")}>
@@ -40,12 +36,8 @@ export const ChatMessage = ({ role, content, isTyping, studentResources }: ChatM
               ) : (
                 <TypingEffect
                   text={content}
-                  onComplete={setTypingComplete}
                   className="prose dark:prose-invert max-w-none"
                   speed={10}
-                  cursorColor="hsl(var(--primary))"
-                  cursorWidth={2}
-                  cursorStyle="solid"
                 />
               )}
             </div>
