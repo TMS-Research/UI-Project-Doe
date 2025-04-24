@@ -52,7 +52,11 @@ export const ChatMessage = ({ role, content, isTyping, studentResources }: ChatM
                   ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
                   li: ({ children }) => <li className="text-foreground">{children}</li>,
                   strong: ({ children }) => <strong className="font-bold text-foreground">{children}</strong>,
-                  code: CodeComponent,
+                  code: ({ children }) => {
+                    const codeString = String(children).replace(/\n$/, "");
+
+                    return <CodeComponent>{codeString}</CodeComponent>;
+                  },
                 }}
               >
                 {content}

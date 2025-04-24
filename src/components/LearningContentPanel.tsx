@@ -214,7 +214,9 @@ export function LearningContentPanel() {
                     ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
                     li: ({ children }) => <li className="text-foreground">{children}</li>,
                     strong: ({ children }) => <strong className="font-bold text-foreground">{children}</strong>,
-                    code: CodeComponent as React.ComponentType<React.HTMLAttributes<HTMLElement>>,
+                    code: ({ children }) => {
+                      return <CodeComponent>{children}</CodeComponent>;
+                    },
                   }}
                 >
                   {courseContent?.concepts}
@@ -235,7 +237,9 @@ export function LearningContentPanel() {
                     ),
                     th: ({ children }) => <th className="border border-border bg-muted p-2 text-left">{children}</th>,
                     td: ({ children }) => <td className="border border-border p-2">{children}</td>,
-                    code: CodeComponent as React.ComponentType<React.HTMLAttributes<HTMLElement>>,
+                    code: ({ children }) => {
+                      return <CodeComponent>{children}</CodeComponent>;
+                    },
                   }}
                 >
                   {courseContent?.problems}
@@ -256,7 +260,9 @@ export function LearningContentPanel() {
                     ),
                     th: ({ children }) => <th className="border border-border bg-muted p-2 text-left">{children}</th>,
                     td: ({ children }) => <td className="border border-border p-2">{children}</td>,
-                    code: CodeComponent as React.ComponentType<React.HTMLAttributes<HTMLElement>>,
+                    code: ({ children }) => {
+                      return <CodeComponent>{children}</CodeComponent>;
+                    },
                   }}
                 >
                   {courseContent?.summary}
@@ -359,11 +365,10 @@ export function LearningContentPanel() {
   );
 }
 
-// Example content for Data Structures
 interface CodeProps extends React.HTMLAttributes<HTMLElement> {
   inline?: boolean;
   className?: string;
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const CodeComponent = ({ className, children, inline, ...props }: CodeProps) => {
