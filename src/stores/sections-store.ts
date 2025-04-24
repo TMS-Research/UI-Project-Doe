@@ -12,7 +12,7 @@ type SectionsState = {
 
 export const useSectionsStore = create<SectionsState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       activeSection: null,
       topics: [],
 
