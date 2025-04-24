@@ -37,7 +37,6 @@ interface CreateLearningPlanPayload {
 
 export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: EnrollmentFlowDialogProps) {
   const [currentStep, setCurrentStep] = useState<Step>("plan");
-  const [loadingState, setLoadingState] = useState<LoadingState>(null);
   const [selectedOption, setSelectedOption] = useState<string>("new");
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -116,7 +115,6 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
     },
     onMutate: () => {
       setIsUploading(true);
-      setLoadingState("uploading");
     },
     onSuccess: () => {
       // Clear the interval and set progress to 100%
@@ -139,7 +137,6 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
         progressIntervalRef.current = null;
       }
       setUploadProgress(0);
-      setLoadingState(null);
       toast.error("Failed to upload resource");
       console.error("Error uploading resource:", error);
     },
@@ -415,8 +412,6 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
                 />
               </div>
             )}
-
-            {/* {renderLoadingState()} */}
           </div>
         );
 
@@ -431,34 +426,6 @@ export default function EnrollmentFlowDialog({ isOpen, onClose, courseCode }: En
             </p>
           </div>
         );
-    }
-  };
-
-  const renderLoadingState = () => {
-    switch (loadingState) {
-      case "uploading":
-        return (
-          <div className="flex flex-col items-center justify-center py-4 space-y-2">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <p className="text-sm text-center">Uploading and scanning your lecture notes... ⏳</p>
-          </div>
-        );
-      case "analyzing":
-        return (
-          <div className="flex flex-col items-center justify-center py-4 space-y-2">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <p className="text-sm text-center">Almost done analyzing the document!</p>
-          </div>
-        );
-      case "creating-quiz":
-        return (
-          <div className="flex flex-col items-center justify-center py-4 space-y-2">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <p className="text-sm text-center">We&apos;ve created a practice quiz 📊 from your lecture!</p>
-          </div>
-        );
-      default:
-        return null;
     }
   };
 

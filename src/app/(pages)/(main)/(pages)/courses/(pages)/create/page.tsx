@@ -16,7 +16,7 @@ interface Section {
   title: string;
   description: string;
   section_order: number;
-  content: Record<string, any>;
+  content: Record<string, unknown>;
   duration_minutes: number;
   is_published: number;
 }
@@ -25,7 +25,7 @@ interface CourseFormData {
   title: string;
   code: string;
   description: string;
-  instructor_info: Record<string, any>;
+  instructor_info: Record<string, string>;
   category: string;
   difficulty_level: string;
   sections: Section[];
@@ -79,7 +79,7 @@ export default function CreateCoursePage() {
     setSections([...sections, newSection]);
   };
 
-  const handleSectionChange = (index: number, field: keyof Section, value: any) => {
+  const handleSectionChange = (index: number, field: keyof Section, value: string | number) => {
     const updatedSections = [...sections];
     updatedSections[index] = {
       ...updatedSections[index],

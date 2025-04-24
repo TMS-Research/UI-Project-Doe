@@ -16,6 +16,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useAchievementsStore } from "@/stores/achievements-store";
+import { useMyCoursesStore } from "@/stores/my-courses-store";
+import { useRecommendedCoursesStore } from "@/stores/recommended-courses-store";
+import { useSearchStore } from "@/stores/search-store";
+import { useSubjectStore } from "@/stores/subject-store";
+import { useTabsStore } from "@/stores/tabs-store";
+import { useLayoutStore } from "@/stores/layout-store";
 
 // Define badge types and their colors
 const BADGE_TYPES = {
@@ -242,11 +249,18 @@ const renderBadgeIcon = (iconName: string) => {
 
 export default function DashboardPage() {
   const { courses, fetchCourses, setActiveCourse } = useCoursesStore();
-  const router = useRouter();
+  const { achievements } = useAchievementsStore();
+  const { myCourses } = useMyCoursesStore();
+  const { recommendedCourses } = useRecommendedCoursesStore();
+  const { searchQuery, setSearchQuery } = useSearchStore();
+  const { selectedSubject, setSelectedSubject } = useSubjectStore();
+  const { setActiveTab } = useTabsStore();
+  const { setShowSidebar } = useLayoutStore();
 
   useEffect(() => {
     fetchCourses();
-  }, [fetchCourses]);
+    setShowSidebar(true);
+  }, [fetchCourses, setShowSidebar]);
 
   // Using mock data with useQuery for easy switching to real API later
   const { data: myCourses } = useQuery<Course[]>({
