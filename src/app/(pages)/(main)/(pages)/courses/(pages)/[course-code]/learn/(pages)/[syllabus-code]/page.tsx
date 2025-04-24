@@ -3,7 +3,6 @@
 import axiosInstance from "@/app/api/axios";
 import { LearningContentPanel } from "@/components/LearningContentPanel";
 import { Progress } from "@/components/ui/progress";
-import { sampleLearningContent } from "@/data/sample-learning-content";
 import { useCoursesStore } from "@/stores/courses-store";
 import { useSectionsStore } from "@/stores/sections-store";
 import { SyllabusContent } from "@/types/api/syllabus.dto";
@@ -64,13 +63,7 @@ export default function LearnPage() {
 
       {/* Learning Content Panel */}
       <div className="bg-background rounded-xl shadow">
-        <LearningContentPanel
-          content={sampleLearningContent}
-          onSaveQuestion={(questionId) => {
-            // TODO: Implement save question functionality
-            console.log("Saving question:", questionId);
-          }}
-        />
+        <LearningContentPanel />
       </div>
     </div>
   );

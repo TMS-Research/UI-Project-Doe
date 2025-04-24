@@ -59,6 +59,7 @@ export function LearningContentPanel() {
       const response = await axiosInstance.get(`/courses/${activeCourse?.id}/sections/${activeSection?.id}`);
       return response.data;
     },
+    enabled: !!activeCourse?.id && !!activeSection?.id,
   });
 
   const { mutate: sendMessage } = useMutation({
