@@ -289,7 +289,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
+    <div className="container mx-auto py-6 space-y-8 mt-12">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="relative w-64 flex items-center rounded-full">

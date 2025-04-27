@@ -4,6 +4,7 @@ export interface CourseSection {
   order: number;
   slug: string;
   description: string;
+  isCompleted?: boolean;
 }
 
 export interface CourseTopic {

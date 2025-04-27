@@ -3,7 +3,6 @@ name: CI
 on:
   pull_request:
     branches: [main, master]
-    types: [closed]
   push:
     branches: [main, master]
 
@@ -32,7 +31,7 @@ jobs:
 
   auto-merge:
     needs: build
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -47,7 +46,6 @@ jobs:
           gh pr merge ${{ github.event.pull_request.number }} --auto --merge
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   deploy:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

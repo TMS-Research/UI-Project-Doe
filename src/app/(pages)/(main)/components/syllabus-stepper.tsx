@@ -1,64 +1,24 @@
 "use client";
 
-import axiosInstance from "@/app/api/axios";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { useCoursesStore } from "@/stores/courses-store";
 import { useSectionsStore } from "@/stores/sections-store";
-import type { Course } from "@/types/api/course.dto";
-import { useQuery } from "@tanstack/react-query";
+import useTopicsStore from "@/stores/topics-store";
 import { CheckCircle2, Circle, CircleDot } from "lucide-react";
-import { useParams } from "next/navigation";
 
 export default function SyllabusStepper() {
-  const { "course-code": courseCode } = useParams();
-  const { activeCourse } = useCoursesStore();
   const { activeSection, setActiveSection } = useSectionsStore();
-
-  // Fetch course data including topics and sections
-  const { data: course } = useQuery<Course>({
-    queryKey: ["course", courseCode],
-    queryFn: async () => {
-      const response = await axiosInstance.get(`/courses/${activeCourse?.id}`);
-      return response.data;
-    },
-    enabled: !!activeCourse,
-  });
-
-  // Fetch section completion status
-  const { data: sectionCompletions } = useQuery<Record<string, boolean>>({
-    queryKey: ["section-completions", activeCourse?.id],
-    queryFn: async () => {
-      if (!course?.topics) return {};
-
-      const completions: Record<string, boolean> = {};
-      for (const topic of course.topics) {
-        for (const section of topic.sections) {
-          const response = await axiosInstance.get(`/courses/${activeCourse?.id}/sections/${section.id}`);
-          completions[section.id] = response.data.completed;
-        }
-      }
-      return completions;
-    },
-    enabled: !!activeCourse && !!course?.topics,
-  });
-
-  // Helper function to check if a section is completed
-  const isSectionCompleted = (sectionId: string): boolean => {
-    return sectionCompletions?.[sectionId] || false;
-  };
+  const { topics } = useTopicsStore();
 
   // Find the current topic and section based on the active section
   const getCurrentProgress = () => {
     let currentTopicIndex = -1;
 
-    if (!course?.topics) return { currentTopicIndex };
-
     // If no active section, try to find the first incomplete section
     if (!activeSection) {
-      for (let topicIndex = 0; topicIndex < course.topics.length; topicIndex++) {
-        const topic = course.topics[topicIndex];
+      for (let topicIndex = 0; topicIndex < topics.length; topicIndex++) {
+        const topic = topics[topicIndex];
         for (let sectionIndex = 0; sectionIndex < topic.sections.length; sectionIndex++) {
           const section = topic.sections[sectionIndex];
           // Set as current if this is the first section or if previous section is completed
@@ -72,8 +32,7 @@ export default function SyllabusStepper() {
       return { currentTopicIndex };
     }
 
-    // Find the current section in the course structure
-    course.topics.forEach((topic, topicIndex) => {
+    topics.forEach((topic, topicIndex) => {
       topic.sections.forEach((section) => {
         if (section.id === activeSection.id) {
           currentTopicIndex = topicIndex;
@@ -86,17 +45,6 @@ export default function SyllabusStepper() {
 
   const { currentTopicIndex } = getCurrentProgress();
 
-  if (!course?.topics) {
-    return (
-      <ScrollArea className="flex flex-col h-full w-[20rem] max-w-3xl mx-auto p-6">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-foreground">Course Progress</h2>
-          <p className="text-sm text-muted-foreground">Loading course content...</p>
-        </div>
-      </ScrollArea>
-    );
-  }
-
   return (
     <ScrollArea className="flex flex-col h-full w-[20rem] mx-auto p-6">
       <div className="mb-6">
@@ -105,7 +53,7 @@ export default function SyllabusStepper() {
       </div>
 
       <Accordion type="multiple">
-        {course.topics.map((topic, topicIndex) => {
+        {topics.map((topic, topicIndex) => {
           const isCurrentTopic = topicIndex === currentTopicIndex;
 
           return (
@@ -137,7 +85,7 @@ export default function SyllabusStepper() {
               <AccordionContent>
                 <div className="space-y-3">
                   {topic.sections.map((section) => {
-                    const isCompleted = isSectionCompleted(section.id);
+                    const isCompleted = section.isCompleted;
                     const isCurrent = section.id === activeSection?.id;
 
                     return (
