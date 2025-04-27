@@ -48,15 +48,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
-    needs: build
+    needs: auto-merge
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Wait 5 seconds
-        run: sleep 5
-      - name: Debug github.ref
-        run: echo "github.ref = ${{ github.ref }}"
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v0.1.6
         with:
