@@ -1,0 +1,31 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait 5 seconds
+        run: sleep 5
+
+      - name: Debug Event and Ref
+        run: |
+          echo "Event Name: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USERNAME }}
+          password: ${{ secrets.ECS_PASSWORD }}
+          port: ${{ secrets.ECS_PORT }}
+          script: |
+            cd UI-Project-Doe
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart staging-ui-project-doe || pm2 start npm --name staging-ui-project-doe -- run start
