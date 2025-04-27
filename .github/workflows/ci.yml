@@ -46,3 +46,22 @@ jobs:
           gh pr merge ${{ github.event.pull_request.number }} --auto --merge
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && contains(github.ref, 'refs/heads/main')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USERNAME }}
+          password: ${{ secrets.ECS_PASSWORD }}
+          port: ${{ secrets.ECS_PORT }}
+          script: |
+            cd UI-Project-Doe
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart staging-ui-project-doe || pm2 start npm --name staging-ui-project-doe -- run start
