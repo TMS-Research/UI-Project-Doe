@@ -50,7 +50,7 @@ export function LearningContentPanel() {
   const { addMessage, setLoading, updateLastMessage } = useChatStore();
   const { activeCourse } = useCoursesStore();
   const { activeSection, setActiveSection } = useSectionsStore();
-  const { topics } = useTopicsStore();
+  const { topics, setTopics } = useTopicsStore();
   const { setPracticeSessionId } = usePracticeStore();
 
   const { data: courseContent } = useQuery({
@@ -318,6 +318,16 @@ export function LearningContentPanel() {
           onClick={() => {
             const sections = topics.flatMap((topic) => topic.sections);
             const currentIndex = sections.findIndex((section) => section.id === activeSection?.id);
+            setTopics(
+              topics.map((topic) => ({
+                ...topic,
+                sections: topic.sections.map((section) => ({
+                  ...section,
+                  isCompleted: section.isCompleted || section.id === sections[currentIndex]?.id,
+                })),
+              })),
+            );
+
             setActiveSection(sections[currentIndex + 1]);
           }}
         >

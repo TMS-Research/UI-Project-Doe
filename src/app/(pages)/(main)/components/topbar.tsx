@@ -9,7 +9,7 @@ import useLayoutStore from "@/stores/layout-store";
 
 export default function Topbar() {
   const [isPopupVisible, setPopupVisible] = useState(false);
-  const { toggleSidebar, isSidebarCollapsed } = useLayoutStore();
+  const { toggleSidebar, isSidebarCollapsed, setSidebarContent } = useLayoutStore();
 
   const handleAvatarClick = () => {
     setPopupVisible(!isPopupVisible);
@@ -33,12 +33,14 @@ export default function Topbar() {
             <TooltipContent>{isSidebarCollapsed ? "Open sidebar" : "Close sidebar"}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <Link
-          href="/dashboard"
+        <Button
+          asChild
+          variant="ghost"
+          onClick={() => setSidebarContent("default")}
           className="flex items-center gap-4 font-bold text-2xl"
         >
-          <h2>Logo</h2>
-        </Link>
+          <Link href="/dashboard">Logo</Link>
+        </Button>
       </div>
       <div className="flex items-center gap-4">
         <div
