@@ -6,6 +6,7 @@ import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useLayoutStore from "@/stores/layout-store";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Topbar() {
   const [isPopupVisible, setPopupVisible] = useState(false);
@@ -43,6 +44,7 @@ export default function Topbar() {
         </Button>
       </div>
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <div
           className="w-8 h-8 rounded-full cursor-pointer bg-cover bg-center bg-primary"
           onClick={handleAvatarClick}
