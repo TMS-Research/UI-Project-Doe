@@ -11,91 +11,91 @@
 @layer base {
   :root {
     /* Base colors - Light theme */
-    --background: 0 0% 100%;
-    --foreground: 224 71% 4%;
+    --background: 0 0% 100%; /* #FFFFFF */
+    --foreground: 220 25% 15%; /* #111827 */
 
     /* Card and Container Backgrounds */
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
-    --card-muted: 260 75% 95%;
-    --card-hover: 260 80% 98%;
+    --card-foreground: 220 25% 15%;
+    --card-muted: 220 25% 98%; /* #F9FAFB */
+    --card-hover: 220 25% 99%;
 
     /* Muted Background Variations */
-    --muted: 260 20% 96%;
-    --muted-foreground: 260 20% 40%;
-    --muted-100: 260 85% 97%;
-    --muted-200: 260 75% 95%;
-    --muted-300: 260 70% 92%;
-    --muted-400: 260 65% 90%;
-    --muted-500: 260 60% 87%;
+    --muted: 220 25% 98%;
+    --muted-foreground: 220 25% 40%;
+    --muted-100: 220 25% 99%;
+    --muted-200: 220 25% 98%;
+    --muted-300: 220 25% 96%;
+    --muted-400: 220 25% 94%;
+    --muted-500: 220 25% 92%;
 
     /* Rest of the colors remain unchanged */
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 220 25% 15%;
 
-    --primary: 260 85% 50%;
+    --primary: 174 80% 40%; /* #14B8A6 */
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 260 85% 95%;
+    --primary-muted: 174 80% 95%;
 
-    --secondary: 174 63% 40%;
+    --secondary: 0 90% 70%; /* #F87171 */
     --secondary-foreground: 0 0% 100%;
-    --secondary-muted: 174 63% 95%;
+    --secondary-muted: 0 90% 95%;
 
-    --accent: 260 85% 95%;
-    --accent-foreground: 260 85% 40%;
+    --accent: 174 80% 95%;
+    --accent-foreground: 174 80% 40%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 260 20% 92%;
-    --input: 260 20% 90%;
-    --ring: 260 85% 50%;
+    --border: 220 25% 92%;
+    --input: 220 25% 90%;
+    --ring: 174 80% 40%;
 
     --radius: 1rem;
   }
 
   .dark {
     /* Dark mode - Updated with the deep navy background */
-    --background: 250 33% 10%; /* Deep navy background */
-    --foreground: 210 40% 98%;
+    --background: 220 25% 8%;
+    --foreground: 220 25% 98%;
 
     /* Dark theme card and container */
-    --card: 250 33% 13%; /* Slightly lighter navy for cards */
-    --card-foreground: 210 40% 98%;
-    --card-muted: 250 33% 16%; /* Muted card background */
-    --card-hover: 250 33% 18%; /* Hover state */
+    --card: 220 25% 10%;
+    --card-foreground: 220 25% 98%;
+    --card-muted: 220 25% 12%;
+    --card-hover: 220 25% 15%;
 
-    /* Dark muted variations - Navy scale */
-    --muted: 250 33% 20%;
-    --muted-foreground: 210 40% 80%;
-    --muted-100: 250 33% 12%; /* Darkest navy */
-    --muted-200: 250 33% 15%; /* Subtle navy */
-    --muted-300: 250 33% 18%; /* Medium navy */
-    --muted-400: 250 33% 21%; /* Lighter navy */
-    --muted-500: 250 33% 24%; /* Lightest navy */
+    /* Dark muted variations */
+    --muted: 220 25% 15%;
+    --muted-foreground: 220 25% 80%;
+    --muted-100: 220 25% 10%;
+    --muted-200: 220 25% 12%;
+    --muted-300: 220 25% 15%;
+    --muted-400: 220 25% 18%;
+    --muted-500: 220 25% 20%;
 
-    /* Dark theme primary - Bright purple for actions */
-    --primary: 252 95% 65%;
-    --primary-foreground: 0 0% 100%;
-    --primary-muted: 252 95% 25%;
+    /* Dark theme primary */
+    --primary: 174 80% 50%;
+    --primary-foreground: 220 25% 8%;
+    --primary-muted: 174 80% 25%;
 
     /* Dark theme secondary */
-    --secondary: 250 33% 25%;
-    --secondary-foreground: 210 40% 98%;
-    --secondary-muted: 250 33% 30%;
+    --secondary: 0 90% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-muted: 0 90% 25%;
 
     /* Dark theme accent */
-    --accent: 250 33% 25%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 220 25% 25%;
+    --accent-foreground: 220 25% 98%;
 
     /* System colors */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 220 25% 98%;
 
     /* Borders and inputs */
-    --border: 250 33% 18%;
-    --input: 250 33% 30%;
-    --ring: 252 95% 65%;
+    --border: 220 25% 18%;
+    --input: 220 25% 30%;
+    --ring: 174 80% 50%;
   }
 }
 

@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import useLayoutStore from "@/stores/layout-store";
 import { useCoursesStore } from "@/stores/courses-store";
-import { Book, FileText, Home, List, Plus, Settings, Trophy, Upload, Video } from "lucide-react";
+import { Book, FileText, Home, List, Plus, Settings, Trophy, Upload, Video, BarChart } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -129,6 +129,7 @@ const DefaultSidebar = ({ isCollapsed }: SidebarProps) => {
   const pathname = usePathname();
 
   const menuItems = [
+    { name: "My Stats", icon: <BarChart />, href: "/my-stats" },
     { name: "Dashboard", icon: <Home />, href: "/dashboard" },
     { name: "Courses", icon: <Book />, href: "/courses" },
     { name: "Leaderboard", icon: <Trophy />, href: "/leaderboard" },
