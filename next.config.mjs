@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compress: true,
+  generateBuildId: () => {
+    return Date.now().toString();
+  },
   images: {
     remotePatterns: [
       {

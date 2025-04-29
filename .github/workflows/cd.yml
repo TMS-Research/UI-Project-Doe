@@ -25,4 +25,6 @@ jobs:
             git pull origin main
             npm install
             npm run build
-            pm2 restart staging-ui-project-doe || pm2 start npm --name staging-ui-project-doe -- run start
+            pm2 stop staging-ui-project-doe
+            pm2 delete staging-ui-project-doe
+            pm2 start npm --name staging-ui-project-doe -- run start
